@@ -1805,9 +1805,9 @@ body{
           <li>"¿Los descuentos que me hacen son legales?"</li>
         </ul>
       </div>
-      <div class="info-card oro" style="margin-top:16px">
-        <h4>¿No tienes API Key?</h4>
-        <p>Crea una cuenta gratuita en <strong>console.anthropic.com</strong> y genera una API Key. El análisis de un contrato típico cuesta menos de $0.05 USD.</p>
+      <div class="info-card verde" style="margin-top:16px">
+        <h4>✅ Completamente gratuito</h4>
+        <p>No necesitas cuenta ni API Key. El análisis es <strong>gratis para todos</strong> — solo sube tu contrato y presiona Analizar.</p>
       </div>
     </div>
   </div>
@@ -2376,12 +2376,18 @@ async function analizarContrato(){
       })
     });
 
+    const rawText=await response.text();
+    let data;
+    try{ data=JSON.parse(rawText); }
+    catch(e){ throw new Error(`Respuesta inválida del servidor (${response.status}). Intenta de nuevo.`); }
+
     if(!response.ok){
-      const err=await response.json().catch(()=>null);
-      throw new Error(err?.error||`Error ${response.status}`);
+      throw new Error(data?.error||`Error ${response.status}`);
+    }
+    if(!data.resultado){
+      throw new Error(data?.error||'El servidor no devolvió análisis. Verifica que el servicio esté configurado.');
     }
 
-    const data=await response.json();
     document.getElementById('analisis-loading').style.display='none';
     document.getElementById('analisis-resultado').style.display='block';
     document.getElementById('analisis-contenido').innerHTML=mdToHtml(data.resultado);
