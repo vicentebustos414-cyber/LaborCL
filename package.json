@@ -12,7 +12,8 @@
     "start": "electron .",
     "build-portable": "npm run build:react && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win portable --x64 --config.win.signAndEditExecutable=false",
     "build-win": "npm run build:react && electron-builder --win --x64",
-    "icons": "node make-icons.js"
+    "icons": "node make-icons.js",
+    "serve": "node server.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",
