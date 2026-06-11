@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0D0D0D">
+<meta name="description" content="LaborCL — Calculadoras y guías de Derecho Laboral Chileno">
+<link rel="manifest" href="manifest.json">
+<title>LaborCL — Derecho Laboral Chileno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rojo: #C8102E;
+  --rojo-oscuro: #9B0D22;
+  --rojo-suave: rgba(200,16,46,0.12);
+  --oro: #C9922A;
+  --oro-claro: #E8B84B;
+  --bg: #0D0D0D;
+  --bg2: #161616;
+  --bg3: #1F1F1F;
+  --bg4: #2A2A2A;
+  --borde: rgba(255,255,255,0.07);
+  --borde-rojo: rgba(200,16,46,0.35);
+  --texto: #F0EDE8;
+  --texto2: #A09A93;
+  --texto3: #6B6560;
+  --verde: #2ECC71;
+  --azul: #3498DB;
+  --sidebar-w: 260px;
+  --r: 12px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--bg);
+  color:var(--texto);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--rojo)}
+
+/* ─── SIDEBAR ─── */
+#sidebar{
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);border-right:1px solid var(--borde);
+  display:flex;flex-direction:column;z-index:100;
+  transition:transform .3s ease;overflow-y:auto;
+}
+.sidebar-logo{
+  padding:28px 24px 20px;
+  border-bottom:1px solid var(--borde);
+}
+.logo-mark{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:700;letter-spacing:-1px;
+  color:var(--texto);line-height:1;
+}
+.logo-mark span{color:var(--rojo)}
+.logo-sub{
+  font-size:10px;font-weight:500;letter-spacing:3px;
+  color:var(--texto3);text-transform:uppercase;margin-top:4px;
+}
+.sidebar-section{
+  padding:16px 16px 4px;
+  font-size:9px;font-weight:600;letter-spacing:2.5px;
+  color:var(--texto3);text-transform:uppercase;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;margin:1px 8px;border-radius:8px;
+  cursor:pointer;transition:all .2s;color:var(--texto2);
+  font-size:13.5px;font-weight:400;border:none;background:none;
+  text-align:left;width:calc(100% - 16px);
+}
+.nav-item:hover{background:var(--bg3);color:var(--texto)}
+.nav-item.active{background:var(--rojo-suave);color:var(--rojo);font-weight:500}
+.nav-item .icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sidebar-footer{
+  margin-top:auto;padding:16px;border-top:1px solid var(--borde);
+  font-size:11px;color:var(--texto3);line-height:1.6;
+}
+
+/* ─── TOPBAR (mobile) ─── */
+#topbar{
+  display:none;position:fixed;top:0;left:0;right:0;height:56px;
+  background:var(--bg2);border-bottom:1px solid var(--borde);
+  z-index:200;align-items:center;padding:0 16px;gap:12px;
+}
+#menu-btn{
+  background:none;border:none;color:var(--texto);font-size:20px;cursor:pointer;
+}
+.top-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700}
+.top-logo span{color:var(--rojo)}
+
+/* ─── MAIN ─── */
+#main{
+  margin-left:var(--sidebar-w);
+  min-height:100vh;
+  padding:40px 48px;
+  max-width:calc(100vw - var(--sidebar-w));
+}
+
+/* ─── SECTION PAGES ─── */
+.page{display:none}
+.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── PAGE HEADER ─── */
+.page-header{margin-bottom:36px}
+.page-tag{
+  font-size:10px;font-weight:600;letter-spacing:3px;
+  color:var(--rojo);text-transform:uppercase;margin-bottom:8px;
+}
+.page-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(32px,4vw,52px);font-weight:600;
+  line-height:1.1;color:var(--texto);
+}
+.page-title em{font-style:italic;color:var(--oro)}
+.page-desc{
+  margin-top:12px;font-size:15px;color:var(--texto2);
+  max-width:620px;line-height:1.7;
+}
+
+/* ─── GRID ─── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.span-2{grid-column:span 2}
+
+/* ─── CARD ─── */
+.card{
+  background:var(--bg2);border:1px solid var(--borde);
+  border-radius:var(--r);padding:28px;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--borde-rojo)}
+.card-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;font-weight:600;margin-bottom:16px;
+  color:var(--texto);display:flex;align-items:center;gap:8px;
+}
+.card-title .badge{
+  font-family:'Outfit',sans-serif;
+  font-size:10px;font-weight:600;letter-spacing:1px;
+  padding:2px 8px;border-radius:20px;
+  background:var(--rojo-suave);color:var(--rojo);
+  text-transform:uppercase;
+}
+
+/* ─── FORM CONTROLS ─── */
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:12px;font-weight:500;
+  color:var(--texto2);margin-bottom:6px;letter-spacing:.5px;
+}
+.field input,.field select{
+  width:100%;background:var(--bg3);border:1px solid var(--borde);
+  border-radius:8px;padding:10px 14px;
+  color:var(--texto);font-family:'Outfit',sans-serif;font-size:14px;
+  outline:none;transition:border-color .2s;
+}
+.field input:focus,.field select:focus{border-color:var(--rojo)}
+.field select option{background:var(--bg3)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ─── BUTTON ─── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 24px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  transition:all .2s;
+}
+.btn-primary{background:var(--rojo);color:#fff}
+.btn-primary:hover{background:var(--rojo-oscuro);transform:translateY(-1px)}
+.btn-ghost{background:var(--bg3);color:var(--texto);border:1px solid var(--borde)}
+.btn-ghost:hover{background:var(--bg4)}
+.btn-full{width:100%;margin-top:8px}
+
+/* ─── RESULT BOX ─── */
+.result-box{
+  margin-top:20px;padding:20px 24px;
+  background:var(--bg);border:1px solid var(--borde-rojo);
+  border-radius:var(--r);display:none;
+}
+.result-box.show{display:block;animation:fadeIn .3s ease}
+.result-label{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--rojo);text-transform:uppercase;margin-bottom:6px}
+.result-value{
+  font-family:'Cormorant Garamond',serif;
+  font-size:36px;font-weight:700;color:var(--oro);line-height:1;
+}
+.result-sub{font-size:13px;color:var(--texto2);margin-top:8px;line-height:1.6}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.result-item{background:var(--bg2);border-radius:8px;padding:12px 16px}
+.result-item-label{font-size:11px;color:var(--texto3);margin-bottom:4px}
+.result-item-value{font-size:16px;font-weight:600;color:var(--texto)}
+
+/* ─── INFO CARDS ─── */
+.info-card{
+  background:var(--bg3);border-radius:var(--r);
+  padding:20px;border-left:3px solid var(--rojo);
+  margin-bottom:16px;
+}
+.info-card.verde{border-left-color:var(--verde)}
+.info-card.oro{border-left-color:var(--oro)}
+.info-card.azul{border-left-color:var(--azul)}
+.info-card h4{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--texto)}
+.info-card p,.info-card li{font-size:13px;color:var(--texto2);line-height:1.7}
+.info-card ul{padding-left:16px}
+.info-card li{margin-bottom:4px}
+
+/* ─── TABLE ─── */
+.tabla{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.tabla th{
+  background:var(--bg3);color:var(--texto2);
+  font-size:11px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--borde);
+}
+.tabla td{padding:12px 14px;border-bottom:1px solid var(--borde);color:var(--texto)}
+.tabla tr:hover td{background:var(--bg3)}
+.tabla .monto{color:var(--oro);font-weight:600}
+.tabla .destacado{color:var(--rojo);font-weight:600}
+
+/* ─── HERO (inicio) ─── */
+.hero{
+  background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);
+  border:1px solid var(--borde);border-radius:16px;
+  padding:48px;margin-bottom:32px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,16,46,.15) 0%,transparent 70%);
+}
+.hero-tag{font-size:10px;font-weight:600;letter-spacing:3px;color:var(--rojo);text-transform:uppercase;margin-bottom:12px}
+.hero h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(36px,5vw,64px);font-weight:600;line-height:1.05;
+  margin-bottom:16px;
+}
+.hero h1 em{font-style:italic;color:var(--oro)}
+.hero p{font-size:16px;color:var(--texto2);max-width:540px;line-height:1.7;margin-bottom:28px}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap}
+.stat{
+}
+.stat-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:32px;font-weight:700;color:var(--rojo);line-height:1;
+}
+.stat-desc{font-size:12px;color:var(--texto3);margin-top:2px}
+
+/* ─── CHIPS ─── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.chip{
+  padding:5px 12px;border-radius:20px;
+  background:var(--bg3);border:1px solid var(--borde);
+  font-size:12px;color:var(--texto2);cursor:pointer;transition:all .2s;
+}
+.chip:hover,.chip.active{background:var(--rojo-suave);border-color:var(--borde-rojo);color:var(--rojo)}
+
+/* ─── PROGRESS BAR ─── */
+.prog-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin:8px 0}
+.prog-fill{height:100%;border-radius:3px;background:var(--rojo);transition:width .6s ease}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--borde);margin:28px 0}
+
+/* ─── ALERT ─── */
+.alert{
+  padding:14px 18px;border-radius:8px;margin-bottom:16px;
+  font-size:13px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;
+}
+.alert-warning{background:rgba(201,146,42,.1);border:1px solid rgba(201,146,42,.3);color:#E8B84B}
+.alert-info{background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);color:#5dade2}
+.alert-success{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);color:#58d68d}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--borde);margin-bottom:24px}
+.tab{
+  padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;
+  color:var(--texto3);border-bottom:2px solid transparent;
+  transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;
+}
+.tab:hover{color:var(--texto2)}
+.tab.active{color:var(--rojo);border-bottom-color:var(--rojo)}
+
+/* ─── AFP CARDS ─── */
+.afp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.afp-card{
+  background:var(--bg3);border:1px solid var(--borde);
+  border-radius:10px;padding:16px;transition:all .2s;
+}
+.afp-card:hover{border-color:var(--borde-rojo);transform:translateY(-2px)}
+.afp-name{font-weight:600;font-size:14px;margin-bottom:4px}
+.afp-com{font-size:12px;color:var(--texto3);margin-bottom:8px}
+.afp-rate{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--oro)}
+.afp-rate-label{font-size:11px;color:var(--texto3)}
+
+/* ─── TIMELINE ─── */
+.timeline{padding-left:24px;border-left:2px solid var(--borde);margin-top:16px}
+.tl-item{position:relative;padding:0 0 24px 20px}
+.tl-item::before{
+  content:'';position:absolute;left:-7px;top:4px;
+  width:12px;height:12px;border-radius:50%;
+  background:var(--rojo);border:2px solid var(--bg2);
+}
+.tl-title{font-size:14px;font-weight:600;color:var(--texto);margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--texto2);line-height:1.6}
+
+/* ─── MOBILE ─── */
+@media(max-width:900px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #topbar{display:flex}
+  #main{margin-left:0;padding:72px 20px 32px;max-width:100vw}
+  .grid-2{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr 1fr}
+  .span-2{grid-column:span 1}
+  .hero{padding:28px}
+  .result-grid{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .afp-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .grid-3{grid-template-columns:1fr}
+  .afp-grid{grid-template-columns:1fr}
+  .hero-stats{gap:20px}
+}
+
+/* ─── OVERLAY ─── */
+#overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.6);z-index:99;
+}
+#overlay.show{display:block}
+
+/* ─── SPINNER ─── */
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── ANÁLISIS MARKDOWN ─── */
+#analisis-contenido h1,#analisis-contenido h2,#analisis-contenido h3{
+  font-family:'Cormorant Garamond',serif;color:var(--texto);margin:24px 0 12px;
+}
+#analisis-contenido h1{font-size:24px;border-bottom:1px solid var(--borde);padding-bottom:8px}
+#analisis-contenido h2{font-size:20px;color:var(--oro)}
+#analisis-contenido h3{font-size:17px;color:var(--rojo)}
+#analisis-contenido p{margin-bottom:12px}
+#analisis-contenido ul,#analisis-contenido ol{padding-left:20px;margin-bottom:12px}
+#analisis-contenido li{margin-bottom:6px}
+#analisis-contenido strong{color:var(--oro)}
+#analisis-contenido code{
+  background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:13px;
+}
+#analisis-contenido blockquote{
+  border-left:3px solid var(--rojo);padding:8px 16px;margin:12px 0;
+  background:var(--rojo-suave);border-radius:0 8px 8px 0;
+  font-style:italic;color:var(--texto2);
+}
+#analisis-contenido hr{border:none;height:1px;background:var(--borde);margin:20px 0}
+.clause-box{
+  background:var(--bg);border:1px solid var(--borde);border-radius:8px;
+  padding:16px;margin:12px 0;
+}
+.clause-box:hover{border-color:var(--borde-rojo)}
+</style>
+</head>
+<body>
+
+<!-- Overlay (mobile) -->
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- TOPBAR (mobile) -->
+<div id="topbar">
+  <button id="menu-btn" onclick="toggleSidebar()">☰</button>
+  <div class="top-logo">Labor<span>CL</span></div>
+</div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">Labor<span>CL</span></div>
+    <div class="logo-sub">Derecho Laboral Chileno</div>
+  </div>
+
+  <div class="sidebar-section">Principal</div>
+  <button class="nav-item active" onclick="showPage('inicio')">
+    <span class="icon">🏛️</span> Inicio
+  </button>
+
+  <div class="sidebar-section">Calculadoras</div>
+  <button class="nav-item" onclick="showPage('anos')">
+    <span class="icon">📅</span> Años de Servicio
+  </button>
+  <button class="nav-item" onclick="showPage('vacaciones')">
+    <span class="icon">🏖️</span> Vacaciones
+  </button>
+  <button class="nav-item" onclick="showPage('finiquito')">
+    <span class="icon">📄</span> Finiquito
+  </button>
+  <button class="nav-item" onclick="showPage('aviso')">
+    <span class="icon">⏰</span> Aviso Previo
+  </button>
+  <button class="nav-item" onclick="showPage('indemnizacion')">
+    <span class="icon">💰</span> Indemnización
+  </button>
+
+  <div class="sidebar-section">Seguridad Social</div>
+  <button class="nav-item" onclick="showPage('afp')">
+    <span class="icon">🏦</span> AFP & Salud
+  </button>
+  <button class="nav-item" onclick="showPage('accidente')">
+    <span class="icon">🏥</span> Accidente Laboral
+  </button>
+  <button class="nav-item" onclick="showPage('afc')">
+    <span class="icon">🏛️</span> AFC — Cesantía
+  </button>
+
+  <div class="sidebar-section">Marco Legal</div>
+  <button class="nav-item" onclick="showPage('contratos')">
+    <span class="icon">📋</span> Contratos
+  </button>
+  <button class="nav-item" onclick="showPage('despidos')">
+    <span class="icon">🚪</span> Despidos
+  </button>
+  <button class="nav-item" onclick="showPage('derechos')">
+    <span class="icon">⚖️</span> Derechos y Obligaciones
+  </button>
+  <button class="nav-item" onclick="showPage('condiciones')">
+    <span class="icon">🔧</span> Condiciones Laborales
+  </button>
+  <button class="nav-item" onclick="showPage('materiales')">
+    <span class="icon">📦</span> Materiales de Trabajo
+  </button>
+
+  <div class="sidebar-section">Herramientas IA</div>
+  <button class="nav-item" onclick="showPage('analizar')">
+    <span class="icon">🤖</span> Analizar Contrato
+  </button>
+
+  <div class="sidebar-footer">
+    Art. 19 N°16 Constitución Chile<br>
+    Código del Trabajo — DFL Nº1<br>
+    <span style="color:var(--rojo)">Solo referencia — no asesoría legal</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+<!-- ════════ INICIO ════════ -->
+<section class="page active" id="page-inicio">
+  <div class="hero">
+    <div class="hero-tag">República de Chile · Código del Trabajo</div>
+    <h1>Tu guía de<br><em>Derecho Laboral</em></h1>
+    <p>Calculadoras precisas, guías claras y toda la normativa chilena vigente para trabajadores y empleadores.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">14+</div><div class="stat-desc">Módulos legales</div></div>
+      <div class="stat"><div class="stat-num">DFL 1</div><div class="stat-desc">Código del Trabajo</div></div>
+      <div class="stat"><div class="stat-num">2024</div><div class="stat-desc">Normativa vigente</div></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="cursor:pointer" onclick="showPage('finiquito')">
+      <div style="font-size:32px;margin-bottom:12px">📄</div>
+      <div class="card-title">Calcular Finiquito</div>
+      <p style="font-size:13px;color:var(--texto2)">Calcula montos de finiquito según causal de despido, sueldo y antigüedad.</p>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showPage('vacaciones')">
+      <div style="font-size:32px;margin-bottom:12px">🏖️</div>
+      <div class="card-title">Vacaciones</div>
+      <p style="font-size:13px;color:var(--texto2)">Días proporcionales, feriado progresivo y vacaciones pendientes.</p>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showPage('indemnizacion')">
+      <div style="font-size:32px;margin-bottom:12px">💰</div>
+      <div class="card-title">Indemnización</div>
+      <p style="font-size:13px;color:var(--texto2)">Años de servicio con tope legal de 90 UF por año (máx. 11 años).</p>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showPage('afp')">
+      <div style="font-size:32px;margin-bottom:12px">🏦</div>
+      <div class="card-title">AFP & Salud</div>
+      <p style="font-size:13px;color:var(--texto2)">Comparativa de AFP, cotizaciones y cobertura FONASA/ISAPRE.</p>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showPage('afc')">
+      <div style="font-size:32px;margin-bottom:12px">🏛️</div>
+      <div class="card-title">AFC Cesantía</div>
+      <p style="font-size:13px;color:var(--texto2)">¿Tienes fondos de cesantía? Requisitos, cuánto recibirías y link directo a AFC.</p>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showPage('despidos')">
+      <div style="font-size:32px;margin-bottom:12px">🚪</div>
+      <div class="card-title">Causales de Despido</div>
+      <p style="font-size:13px;color:var(--texto2)">Art. 159, 160 y 161 del Código del Trabajo explicados.</p>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showPage('analizar')">
+      <div style="font-size:32px;margin-bottom:12px">🤖</div>
+      <div class="card-title">Analizar Contrato <span class="badge">IA</span></div>
+      <p style="font-size:13px;color:var(--texto2)">Sube tu contrato y la IA te lo explica cláusula por cláusula en lenguaje simple.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="alert alert-warning">
+    <span>⚠️</span>
+    <span>Esta aplicación es de <strong>referencia informativa</strong>. Para situaciones legales específicas, consulta a un abogado laboralista o a la Dirección del Trabajo de Chile.</span>
+  </div>
+</section>
+
+<!-- ════════ AÑOS DE SERVICIO ════════ -->
+<section class="page" id="page-anos">
+  <div class="page-header">
+    <div class="page-tag">Calculadora</div>
+    <h2 class="page-title">Años de <em>Servicio</em></h2>
+    <p class="page-desc">Calcula exactamente cuánto tiempo llevas o llevaste trabajando en una empresa, incluyendo meses y días.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Datos del Período</div>
+      <div class="field">
+        <label>Fecha de Inicio del Contrato</label>
+        <input type="date" id="anos-inicio">
+      </div>
+      <div class="field">
+        <label>Fecha de Término (dejar vacío si aún trabajas)</label>
+        <input type="date" id="anos-termino">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="calcAnos()">Calcular Antigüedad</button>
+      <div class="result-box" id="res-anos">
+        <div class="result-label">Tiempo Total de Servicio</div>
+        <div class="result-value" id="anos-total">—</div>
+        <div class="result-sub" id="anos-detalle"></div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="result-item-label">Años completos</div>
+            <div class="result-item-value" id="anos-anos">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Meses adicionales</div>
+            <div class="result-item-value" id="anos-meses">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Días adicionales</div>
+            <div class="result-item-value" id="anos-dias">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Total días</div>
+            <div class="result-item-value" id="anos-diasTotal">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <h4>¿Para qué sirve la antigüedad?</h4>
+        <ul>
+          <li>Base de cálculo para <strong>indemnización por años de servicio</strong></li>
+          <li>Determina el <strong>feriado progresivo</strong> (vacaciones extra)</li>
+          <li>Define el <strong>aviso previo</strong> al empleador o trabajador</li>
+          <li>Requisito para <strong>fuero maternal</strong> y otros beneficios</li>
+        </ul>
+      </div>
+      <div class="info-card oro">
+        <h4>Fracción superior a 6 meses</h4>
+        <p>Según el Art. 163 del Código del Trabajo, una fracción de año superior a 6 meses se considera un año completo para efectos de la indemnización por años de servicio.</p>
+      </div>
+      <div class="info-card azul">
+        <h4>Continuidad del período</h4>
+        <p>Si hubo finiquito y recontratación, los períodos anteriores generalmente no se suman, salvo acuerdo expreso o que la Dirección del Trabajo determine continuidad de la relación laboral.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ VACACIONES ════════ -->
+<section class="page" id="page-vacaciones">
+  <div class="page-header">
+    <div class="page-tag">Calculadora</div>
+    <h2 class="page-title">Vacaciones <em>Legales</em></h2>
+    <p class="page-desc">Art. 67-68 Código del Trabajo. 15 días hábiles anuales + feriado progresivo.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Datos para el Cálculo</div>
+      <div class="field">
+        <label>Fecha de Ingreso a la Empresa</label>
+        <input type="date" id="vac-ingreso">
+      </div>
+      <div class="field">
+        <label>Fecha de Referencia (hoy por defecto)</label>
+        <input type="date" id="vac-hoy">
+      </div>
+      <div class="field">
+        <label>Años en empleos anteriores (feriado progresivo)</label>
+        <input type="number" id="vac-previos" min="0" max="50" value="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Días de vacaciones ya tomadas este año</label>
+        <input type="number" id="vac-tomadas" min="0" value="0" placeholder="0">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="calcVacaciones()">Calcular Vacaciones</button>
+      <div class="result-box" id="res-vac">
+        <div class="result-label">Días Hábiles Disponibles</div>
+        <div class="result-value" id="vac-total">—</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="result-item-label">Días base anuales</div>
+            <div class="result-item-value" id="vac-base">15</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Feriado progresivo</div>
+            <div class="result-item-value" id="vac-prog">0</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Días proporcionales</div>
+            <div class="result-item-value" id="vac-prop">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Días pendientes</div>
+            <div class="result-item-value" id="vac-pend">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <h4>Vacaciones Base — Art. 67 CT</h4>
+        <ul>
+          <li><strong>15 días hábiles</strong> por cada año trabajado</li>
+          <li>Se requiere <strong>1 año continuo</strong> para el derecho completo</li>
+          <li>El sábado <strong>NO</strong> es día hábil para este cálculo</li>
+          <li>Los festivos nacionales tampoco se cuentan</li>
+        </ul>
+      </div>
+      <div class="info-card oro">
+        <h4>Feriado Progresivo — Art. 68 CT</h4>
+        <p>Si tienes <strong>10 años de trabajo</strong> para uno o más empleadores (continuos o no), tienes derecho a 1 día adicional de vacaciones por cada 3 años trabajados sobre esos 10 años.</p>
+      </div>
+      <div class="info-card verde">
+        <h4>Vacaciones Proporcionales</h4>
+        <p>Si llevas menos de un año o el contrato termina, tienes derecho a vacaciones proporcionales al tiempo trabajado: (días trabajados / 365) × 15 días hábiles.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FINIQUITO ════════ -->
+<section class="page" id="page-finiquito">
+  <div class="page-header">
+    <div class="page-tag">Calculadora</div>
+    <h2 class="page-title">Finiquito <em>Laboral</em></h2>
+    <p class="page-desc">Calcula el monto total del finiquito según causal de término, incluyendo indemnizaciones, vacaciones y proporcionales.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Datos del Trabajador</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Sueldo Base Mensual ($)</label>
+          <input type="number" id="fin-sueldo" placeholder="700000" min="0">
+        </div>
+        <div class="field">
+          <label>Valor UF actual ($)</label>
+          <input type="number" id="fin-uf" value="37800" min="0">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Fecha de Ingreso</label>
+          <input type="date" id="fin-ingreso">
+        </div>
+        <div class="field">
+          <label>Fecha de Término</label>
+          <input type="date" id="fin-termino">
+        </div>
+      </div>
+      <div class="field">
+        <label>Causal de Término</label>
+        <select id="fin-causal">
+          <option value="161n1">Art. 161 Nec. empresa (con indem.)</option>
+          <option value="161n2">Art. 161 Desahucio empleador (con indem.)</option>
+          <option value="159_1">Art. 159 N°1 Mutuo acuerdo</option>
+          <option value="159_2">Art. 159 N°2 Renuncia voluntaria</option>
+          <option value="159_3">Art. 159 N°3 Muerte trabajador</option>
+          <option value="159_4">Art. 159 N°4 Vencim. plazo</option>
+          <option value="159_5">Art. 159 N°5 Conclusión obra</option>
+          <option value="160">Art. 160 Despido disciplinario (sin indem.)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Días de vacaciones pendientes (hábiles)</label>
+        <input type="number" id="fin-vacp" value="0" min="0">
+      </div>
+      <div class="field">
+        <label>¿Aviso previo pagado en dinero?</label>
+        <select id="fin-aviso">
+          <option value="no">No (se dio aviso con 30 días)</option>
+          <option value="si">Sí (30 días de sueldo adicional)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="calcFiniquito()">Calcular Finiquito</button>
+    </div>
+
+    <div>
+      <div class="result-box show" id="res-fin" style="display:block;background:var(--bg2)">
+        <div class="result-label">Total Finiquito Estimado</div>
+        <div class="result-value" id="fin-total" style="font-size:28px">Ingresa los datos →</div>
+        <div class="result-grid" id="fin-desglose"></div>
+        <div class="result-sub" id="fin-nota"></div>
+      </div>
+      <div class="info-card" style="margin-top:16px">
+        <h4>Tope Legal Indemnización</h4>
+        <p>El tope es <strong>90 UF por año de servicio</strong> (Art. 172 CT). Si el sueldo supera las 90 UF mensuales, se usa 90 UF como base. Máximo <strong>11 años</strong> de indemnización.</p>
+      </div>
+      <div class="info-card azul">
+        <h4>Plazo de Pago</h4>
+        <p>El finiquito debe pagarse al <strong>momento de la firma</strong>. Si hay cuotas acordadas, la primera debe ser el día del finiquito. El incumplimiento genera reajuste e intereses.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ AVISO PREVIO ════════ -->
+<section class="page" id="page-aviso">
+  <div class="page-header">
+    <div class="page-tag">Calculadora</div>
+    <h2 class="page-title">Aviso <em>Previo</em></h2>
+    <p class="page-desc">Art. 161 Código del Trabajo. El empleador debe dar 30 días de aviso o pagar una indemnización sustitutiva.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Calcular Indemnización Sustitutiva</div>
+      <div class="field">
+        <label>Última Remuneración Mensual ($)</label>
+        <input type="number" id="aviso-sueldo" placeholder="800000">
+      </div>
+      <div class="field">
+        <label>¿Se dio aviso previo de 30 días?</label>
+        <select id="aviso-tipo">
+          <option value="no">No — el empleador no avisó</option>
+          <option value="si">Sí — se notificó con 30+ días</option>
+          <option value="parcial">Parcial — se avisó con menos de 30 días</option>
+        </select>
+      </div>
+      <div class="field" id="campo-dias-aviso" style="display:none">
+        <label>Días de aviso que sí se dieron</label>
+        <input type="number" id="aviso-dias-dados" min="0" max="29" value="15">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="calcAviso()">Calcular</button>
+      <div class="result-box" id="res-aviso">
+        <div class="result-label">Indemnización Sustitutiva de Aviso</div>
+        <div class="result-value" id="aviso-monto">—</div>
+        <div class="result-sub" id="aviso-detalle"></div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <h4>¿Qué es el Aviso Previo?</h4>
+        <ul>
+          <li>El empleador que invoca Art. 161 debe dar aviso <strong>con 30 días de anticipación</strong></li>
+          <li>Si no da aviso, debe pagar el equivalente a <strong>30 días de sueldo</strong></li>
+          <li>Si da aviso parcial (ej. 15 días), paga los <strong>días restantes</strong></li>
+          <li>El aviso debe ser <strong>escrito</strong> con copia a la Inspección del Trabajo</li>
+        </ul>
+      </div>
+      <div class="info-card oro">
+        <h4>¿Cuándo NO corresponde Aviso Previo?</h4>
+        <ul>
+          <li>Despido por Art. 160 (disciplinario — culpa del trabajador)</li>
+          <li>Término por Art. 159 (causas objetivas: mutuo acuerdo, renuncia, etc.)</li>
+          <li>El trabajador que renuncia no necesita dar aviso previo (solo se recomienda)</li>
+        </ul>
+      </div>
+      <div class="info-card azul">
+        <h4>Renuncia del Trabajador</h4>
+        <p>El trabajador que renuncia no está obligado a dar aviso previo legalmente, aunque en la práctica es una cortesía avisar con anticipación. Debe dar aviso <strong>por escrito</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ INDEMNIZACIÓN ════════ -->
+<section class="page" id="page-indemnizacion">
+  <div class="page-header">
+    <div class="page-tag">Calculadora</div>
+    <h2 class="page-title">Indemnización por <em>Años de Servicio</em></h2>
+    <p class="page-desc">Art. 163 CT — 1 mes de remuneración por cada año de servicio. Tope 90 UF y máximo 11 años.</p>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Datos del Cálculo</div>
+      <div class="field">
+        <label>Última Remuneración Mensual ($)</label>
+        <input type="number" id="ind-sueldo" placeholder="800000">
+      </div>
+      <div class="field">
+        <label>Valor UF ($)</label>
+        <input type="number" id="ind-uf" value="37800">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Fecha Ingreso</label>
+          <input type="date" id="ind-ingreso">
+        </div>
+        <div class="field">
+          <label>Fecha Término</label>
+          <input type="date" id="ind-termino">
+        </div>
+      </div>
+      <div class="field">
+        <label>¿Hay pacto de 150%? (trabajadores con fuero)</label>
+        <select id="ind-recargo">
+          <option value="1">No — 100% (normal)</option>
+          <option value="1.5">150% — Art. 163 bis</option>
+          <option value="2">200% — Despido improcedente</option>
+          <option value="3">300% — Con vulneración de DDFF</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="calcIndemnizacion()">Calcular Indemnización</button>
+      <div class="result-box" id="res-ind">
+        <div class="result-label">Indemnización Total</div>
+        <div class="result-value" id="ind-total">—</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="result-item-label">Años considerados</div>
+            <div class="result-item-value" id="ind-anos">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Base mensual</div>
+            <div class="result-item-value" id="ind-base">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Tope 90 UF aplicado</div>
+            <div class="result-item-value" id="ind-tope">—</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">Recargo aplicado</div>
+            <div class="result-item-value" id="ind-recargo-val">—</div>
+          </div>
+        </div>
+        <div class="result-sub" id="ind-nota"></div>
+      </div>
+    </div>
+    <div>
+      <div class="info-card">
+        <h4>Reglas del Art. 163 CT</h4>
+        <ul>
+          <li>Aplica cuando el término es por <strong>Art. 161</strong> (necesidades de la empresa o desahucio)</li>
+          <li><strong>1 mes de remuneración</strong> por año de servicio y fracción superior a 6 meses</li>
+          <li>Tope: <strong>90 UF</strong> por año (≈ $3.4 millones al valor actual)</li>
+          <li>Tope de años: <strong>11 años</strong> máximo a pagar</li>
+        </ul>
+      </div>
+      <div class="info-card oro">
+        <h4>¿Qué incluye la "última remuneración"?</h4>
+        <ul>
+          <li>Sueldo base</li>
+          <li>Beneficios contractuales fijos</li>
+          <li><strong>Excluye:</strong> bonos variables, horas extra, viáticos, asignaciones esporádicas</li>
+        </ul>
+      </div>
+      <div class="info-card azul">
+        <h4>Recargo por Despido Improcedente</h4>
+        <p>Si el tribunal declara el despido injustificado, el juez puede ordenar pagar la indemnización con recargos de hasta <strong>100% adicional</strong> (total 200%). Con vulneración de DDFF puede llegar al <strong>300%</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ AFP & SALUD ════════ -->
+<section class="page" id="page-afp">
+  <div class="page-header">
+    <div class="page-tag">Seguridad Social</div>
+    <h2 class="page-title">AFP & <em>Salud</em></h2>
+    <p class="page-desc">Sistemas obligatorios de pensiones y salud. Saber si estás al día y cómo verificar tus cotizaciones.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'tab-afp')">AFP</button>
+    <button class="tab" onclick="switchTab(this,'tab-salud')">Salud</button>
+  </div>
+
+  <div id="tab-afp">
+    <div class="grid-2">
+      <div>
+        <div class="info-card verde">
+          <h4>¿Para qué sirve la AFP?</h4>
+          <ul>
+            <li><strong>Ahorro obligatorio para tu jubilación</strong> — El 10% de tu sueldo va a una cuenta personal e intransferible</li>
+            <li><strong>Seguro de invalidez</strong> — Si quedas inválido antes de jubilar, el seguro te cubre</li>
+            <li><strong>Pensión por sobrevivencia</strong> — Si mueres, tus herederos reciben beneficios de tu AFP</li>
+            <li><strong>Rentabilidad</strong> — Tu dinero se invierte y genera ganancias durante tu vida laboral</li>
+            <li><strong>Jubilación garantizada</strong> — A los 65 años (hombres) o 60 (mujeres), retiras tu saldo acumulado</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h4>Cotización AFP en tu boleta</h4>
+          <ul>
+            <li><strong>10% de tu sueldo imponible</strong> → Fondo de pensión (tu cuenta individual)</li>
+            <li><strong>+ comisión AFP</strong> (0.49% a 1.45% según AFP)</li>
+            <li><strong>+ SIS</strong> ≈ 1.49% (paga el empleador, no te descuentan)</li>
+            <li><strong>Sueldo imponible máximo:</strong> 84.3 UF mensuales</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="info-card oro">
+          <h4>¿Estoy al día con mi AFP?</h4>
+          <p style="margin-bottom:12px"><strong>Revisa tu boleta de pago</strong> cada mes:</p>
+          <ul>
+            <li>Aparezca el descuento de "Cotización AFP 10%"</li>
+            <li>Aparezca el descuento de "Comisión AFP"</li>
+            <li>Aparezca el descuento de "SIS" (si es aplicable)</li>
+          </ul>
+          <p style="margin-top:12px"><strong>Consulta tu saldo:</strong></p>
+          <ul>
+            <li>En el sitio web de tu AFP (Portal de afiliados)</li>
+            <li>En el formulario de verificación: <strong>https://www.afiliados.cl</strong></li>
+            <li>Por teléfono en el número de tu AFP</li>
+            <li>En una sucursal física de la AFP</li>
+          </ul>
+        </div>
+        <div class="info-card azul">
+          <h4>¿Qué pasa si NO cotizan por ti?</h4>
+          <ul>
+            <li>⚠️ <strong>No hay derecho a jubilación</strong> — Solo cobras lo ahorrado antes</li>
+            <li>⚠️ <strong>No tienes cobertura de invalidez</strong> — El SIS no te protege</li>
+            <li>⚠️ <strong>Tus herederos no reciben pensión</strong> de sobrevivencia</li>
+            <li>✅ <strong>Denuncia a tu empleador</strong> en la Inspección del Trabajo (DT)</li>
+            <li>✅ <strong>Exige la liquidación de cotizaciones adeudadas</strong> con intereses</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:18px;margin:20px 0;color:var(--texto)">Comparativa de AFP 2024</h3>
+    <div class="afp-grid">
+      <div class="afp-card">
+        <div class="afp-name">AFP Capital</div>
+        <div class="afp-com">Santander · Chile</div>
+        <div class="afp-rate">1.44%</div>
+        <div class="afp-rate-label">Comisión sobre sueldo imponible</div>
+      </div>
+      <div class="afp-card">
+        <div class="afp-name">AFP Cuprum</div>
+        <div class="afp-com">Principal Financial</div>
+        <div class="afp-rate">1.44%</div>
+        <div class="afp-rate-label">Comisión sobre sueldo imponible</div>
+      </div>
+      <div class="afp-card">
+        <div class="afp-name">AFP Habitat</div>
+        <div class="afp-com">Prudential · BCI</div>
+        <div class="afp-rate">1.27%</div>
+        <div class="afp-rate-label">Comisión sobre sueldo imponible</div>
+      </div>
+      <div class="afp-card">
+        <div class="afp-name">AFP PlanVital</div>
+        <div class="afp-com">Independiente</div>
+        <div class="afp-rate">1.16%</div>
+        <div class="afp-rate-label">Comisión sobre sueldo imponible</div>
+      </div>
+      <div class="afp-card">
+        <div class="afp-name">AFP Provida</div>
+        <div class="afp-com">MetLife</div>
+        <div class="afp-rate">1.45%</div>
+        <div class="afp-rate-label">Comisión sobre sueldo imponible</div>
+      </div>
+      <div class="afp-card">
+        <div class="afp-name">AFP Uno</div>
+        <div class="afp-com">Independiente · 2019</div>
+        <div class="afp-rate">0.49%</div>
+        <div class="afp-rate-label">Comisión sobre sueldo imponible</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-salud" style="display:none">
+    <div class="grid-2">
+      <div>
+        <div class="info-card verde">
+          <h4>¿Para qué sirve la afiliación a Salud?</h4>
+          <ul>
+            <li><strong>Atención médica integral</strong> — Consultas, examenes, medicamentos</li>
+            <li><strong>Licencias médicas pagadas</strong> — El sistema de salud te financia en caso de enfermedad</li>
+            <li><strong>Maternidad y paternidad</strong> — Cobertura de embarazo, parto y post-parto</li>
+            <li><strong>Urgencias</strong> — Atención 24/7 en caso de emergencia</li>
+            <li><strong>Hospitalizaciones</strong> — Cirugy y hospitalización cubierta</li>
+            <li><strong>Protección de incapacidad laboral</strong> — No pierdes sueldo durante tratamientos</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h4>Cotización Salud en tu boleta</h4>
+          <ul>
+            <li><strong>7% obligatorio de tu sueldo imponible</strong></li>
+            <li>Se descuenta <strong>FONASA</strong> o <strong>ISAPRE</strong> (según tu afiliación)</li>
+            <li>Este descuento va directamente a tu institución de salud</li>
+            <li>Tu empleador responde por el pago oportuno</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="info-card oro">
+          <h4>¿Estoy al día con Salud?</h4>
+          <p style="margin-bottom:12px"><strong>Revisa tu boleta cada mes:</strong></p>
+          <ul>
+            <li>Aparezca el descuento "FONASA 7%" o "ISAPRE 7%" (o más si cotizas voluntario)</li>
+            <li>Aparezca la institución de salud a la que aportas</li>
+          </ul>
+          <p style="margin-top:12px"><strong>Verifica tu afiliación:</strong></p>
+          <ul>
+            <li><strong>FONASA:</strong> www.fonasa.cl → Mis beneficiarios</li>
+            <li><strong>ISAPRE:</strong> Contacta tu ISAPRE o entra a su portal</li>
+            <li><strong>PREVIRED:</strong> www.previred.cl (reporte centralizado)</li>
+          </ul>
+        </div>
+        <div class="info-card azul">
+          <h4>¿Qué pasa si NO estoy afiliado?</h4>
+          <ul>
+            <li>⚠️ <strong>No tienes cobertura de salud</strong> — Gastos médicos salen de tu bolsillo</li>
+            <li>⚠️ <strong>Sin licencia pagada</strong> — Trabajas enfermo o pierdes sueldo</li>
+            <li>⚠️ <strong>Sin protección maternal</strong> — Gastos de parto y post-parto no cubiertos</li>
+            <li>✅ <strong>Denuncia a tu empleador</strong> en la Inspección del Trabajo</li>
+            <li>✅ <strong>Solicita tu afiliación retroactiva</strong> con recuperación de cotizaciones</li>
+            <li>✅ <strong>Tienes derecho a atenderte en urgencias</strong> sin importar afiliación</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="grid-2" style="margin-top:20px">
+      <div>
+        <div class="info-card">
+          <h4>FONASA — Fondo Nacional de Salud</h4>
+          <p style="margin-bottom:12px"><strong>Para todos los trabajadores dependientes (opción por defecto)</strong></p>
+          <ul>
+            <li>Cotización: <strong>7% obligatorio</strong></li>
+            <li>Atención en <strong>red pública</strong> de hospitales y centros</li>
+            <li>4 tramos (A, B, C, D) según ingreso</li>
+            <li><strong>Tramos A y B:</strong> atención sin copago</li>
+            <li><strong>Tramo C:</strong> 10% copago</li>
+            <li><strong>Tramo D:</strong> 20% copago</li>
+            <li>Derecho a "bono" FONASA para atenderse en privados</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="info-card azul">
+          <h4>ISAPRE — Instituciones de Salud Previsional</h4>
+          <p style="margin-bottom:12px"><strong>Sistema privado — opción voluntaria</strong></p>
+          <ul>
+            <li>Cotización mínima legal: <strong>7%</strong> (pero pueden cobrar más)</li>
+            <li>Red privada de clínicas y consultorios</li>
+            <li>Mayor libertad de elección pero mayor costo</li>
+            <li><strong>Crisis financiera 2023-2024:</strong> múltiples ISAPRE en liquidación</li>
+            <li>Derecho a <strong>volver a FONASA cuando quieras</strong> (sin penalidad)</li>
+            <li>Revisión de prima anual según riesgo (edad, enfermedades pre-existentes)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card verde" style="margin-top:20px">
+      <h4>Licencias Médicas — ¿Quién Paga?</h4>
+      <table class="tabla">
+        <tr><th>Período</th><th>Quién Paga</th><th>Porcentaje</th></tr>
+        <tr><td>Días 1–3</td><td><strong>El empleador</strong></td><td class="monto">100% del sueldo</td></tr>
+        <tr><td>Día 4 en adelante</td><td><strong>FONASA o ISAPRE</strong></td><td class="monto">100% del sueldo</td></tr>
+        <tr><td>Maternidad (pre-parto)</td><td><strong>FONASA o ISAPRE</strong></td><td class="monto">6 semanas</td></tr>
+        <tr><td>Maternidad (post-parto)</td><td><strong>FONASA o ISAPRE</strong></td><td class="monto">12 semanas</td></tr>
+        <tr><td>Paternidad</td><td><strong>El empleador</strong></td><td class="monto">5 días pagados</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ACCIDENTE LABORAL ════════ -->
+<section class="page" id="page-accidente">
+  <div class="page-header">
+    <div class="page-tag">Seguridad Laboral</div>
+    <h2 class="page-title">Accidente <em>Laboral</em></h2>
+    <p class="page-desc">Ley 16.744 — Seguro contra Accidentes del Trabajo y Enfermedades Profesionales.</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="info-card">
+        <h4>¿Qué es un Accidente del Trabajo?</h4>
+        <p style="margin-bottom:8px">Toda lesión que sufra una persona a causa o con ocasión del trabajo (Art. 5 Ley 16.744).</p>
+        <ul>
+          <li>Accidente en el lugar de trabajo</li>
+          <li>Accidente <strong>de trayecto</strong> (camino de/hacia el trabajo)</li>
+          <li>Enfermedades <strong>profesionales</strong> causadas por el trabajo</li>
+        </ul>
+      </div>
+      <div class="info-card oro">
+        <h4>Mutualidades (Organismos Administradores)</h4>
+        <ul>
+          <li><strong>ACHS</strong> — Asociación Chilena de Seguridad</li>
+          <li><strong>Mutual de Seguridad CChC</strong></li>
+          <li><strong>IST</strong> — Instituto de Seguridad del Trabajo</li>
+          <li><strong>ISL</strong> — Instituto de Seguridad Laboral (para empresas sin mutualidad)</li>
+        </ul>
+      </div>
+      <div class="info-card azul">
+        <h4>Cotización del Seguro</h4>
+        <ul>
+          <li>Cotización básica: <strong>0.93%</strong> del sueldo imponible</li>
+          <li>Cotización adicional: según actividad económica (0% – 3.4%)</li>
+          <li>La paga <strong>íntegramente el empleador</strong></li>
+          <li>El trabajador no contribuye al seguro de accidentes</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="info-card verde">
+        <h4>Prestaciones del Seguro</h4>
+        <ul>
+          <li><strong>Médicas:</strong> atención gratuita y completa en la mutualidad</li>
+          <li><strong>Subsidio:</strong> 100% del sueldo desde el día 1 de la licencia</li>
+          <li><strong>Indemnización:</strong> por incapacidad permanente parcial o total</li>
+          <li><strong>Pensión de invalidez:</strong> para incapacidades mayores al 70%</li>
+          <li><strong>Pensión de viudez/orfandad:</strong> en caso de muerte</li>
+        </ul>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-title">Inmediatamente</div>
+          <div class="tl-desc">Atención en la mutualidad correspondiente. Presentar credencial o RUT del empleador.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-title">24-48 horas</div>
+          <div class="tl-desc">El empleador debe declarar el accidente ante la mutualidad (DIAT — Declaración Individual de Accidente del Trabajo).</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-title">Durante la recuperación</div>
+          <div class="tl-desc">El trabajador recibe el 100% de su remuneración como subsidio, pagado por la mutualidad.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-title">Alta médica</div>
+          <div class="tl-desc">Se evalúa si hay secuelas. Si hay incapacidad permanente, se calcula la indemnización o pensión correspondiente.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ AFC CESANTÍA ════════ -->
+<section class="page" id="page-afc">
+  <div class="page-header">
+    <div class="page-tag">Seguridad Social</div>
+    <h2 class="page-title">AFC — <em>Fondos de Cesantía</em></h2>
+    <p class="page-desc">Administradora de Fondos de Cesantía de Chile. Sabe qué es, si tienes derecho y cuánto podrías recibir si quedas sin trabajo.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'tab-afc-que')">¿Qué es AFC?</button>
+    <button class="tab" onclick="switchTab(this,'tab-afc-req')">Requisitos</button>
+    <button class="tab" onclick="switchTab(this,'tab-afc-calc')">Calculadora</button>
+  </div>
+
+  <!-- TAB 1: QUÉ ES AFC -->
+  <div id="tab-afc-que">
+    <div class="grid-2">
+      <div>
+        <div class="info-card verde">
+          <h4>¿Qué es la AFC Chile?</h4>
+          <p style="margin-bottom:10px">La <strong>Administradora de Fondos de Cesantía (AFC Chile)</strong> es la institución que administra el <strong>Seguro de Cesantía</strong>, un seguro obligatorio que protege económicamente a los trabajadores dependientes cuando pierden su trabajo.</p>
+          <p>Fue creada por la <strong>Ley 19.728 del año 2001</strong> y funciona desde octubre de 2002. Si tienes contrato de trabajo en Chile, muy probablemente ya estás cotizando sin saberlo.</p>
+        </div>
+        <div class="info-card">
+          <h4>¿Para qué sirve concretamente?</h4>
+          <ul>
+            <li>Te paga un <strong>subsidio mensual</strong> mientras buscas trabajo</li>
+            <li>El dinero <strong>es tuyo</strong> — acumulado en una cuenta individual a tu nombre</li>
+            <li>Protege tu ingreso durante los primeros meses de desempleo</li>
+            <li>Si no lo usas nunca, lo puedes <strong>retirar al jubilar</strong></li>
+            <li>También se puede usar como complemento de pensión al jubilar</li>
+          </ul>
+        </div>
+        <div class="info-card azul">
+          <h4>¿Cómo funciona la cuenta?</h4>
+          <ul>
+            <li>Cada mes tu empleador descuenta un porcentaje de tu sueldo y lo deposita en AFC</li>
+            <li>Parte va a tu <strong>Cuenta Individual</strong> (es tuya, intransferible)</li>
+            <li>Parte va al <strong>Fondo de Cesantía Solidario</strong> (para todos)</li>
+            <li>Tu saldo crece con cada cotización y genera rentabilidad</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="info-card oro">
+          <h4>¿Quién paga el Seguro de Cesantía?</h4>
+          <table class="tabla">
+            <tr><th>Quién aporta</th><th>Contrato Indefinido</th><th>Plazo Fijo / Obra</th></tr>
+            <tr><td><strong>Tú (trabajador)</strong></td><td class="monto">0.6%</td><td class="monto">0%</td></tr>
+            <tr><td>Empleador → tu cuenta</td><td class="monto">1.6%</td><td class="monto">3.0%</td></tr>
+            <tr><td>Empleador → fondo solidario</td><td class="monto">0.8%</td><td class="monto">0%</td></tr>
+            <tr><td><strong>Total cotización</strong></td><td class="monto destacado"><strong>3.0%</strong></td><td class="monto destacado"><strong>3.0%</strong></td></tr>
+          </table>
+          <p style="margin-top:10px;font-size:12px;color:var(--texto3)">Base de cálculo: sueldo imponible mensual</p>
+        </div>
+        <div class="info-card">
+          <h4>¿Cómo verifico mi saldo?</h4>
+          <ul>
+            <li>Ingresa a <strong>www.afc.cl</strong> con tu RUT y clave</li>
+            <li>También en la app móvil <strong>AFC Chile</strong></li>
+            <li>Llama al <strong>600 600 2000</strong> (línea AFC)</li>
+            <li>Ve a una sucursal con tu carnet de identidad</li>
+            <li>Revisa tu <strong>liquidación de sueldo</strong> — debe aparecer el descuento</li>
+          </ul>
+          <div style="margin-top:16px">
+            <a href="https://www.afc.cl" target="_blank" style="
+              display:inline-flex;align-items:center;gap:8px;
+              background:var(--rojo);color:#fff;padding:10px 20px;
+              border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;
+              transition:background .2s;
+            " onmouseover="this.style.background='#9B0D22'" onmouseout="this.style.background='var(--rojo)'">
+              🌐 Ir a AFC Chile →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: REQUISITOS -->
+  <div id="tab-afc-req" style="display:none">
+    <div class="grid-2">
+      <div>
+        <div class="info-card verde">
+          <h4>✅ ¿Tengo derecho al Seguro de Cesantía?</h4>
+          <p style="margin-bottom:10px">Tienes derecho si cumples <strong>TODOS</strong> estos puntos:</p>
+          <ul>
+            <li>Eres <strong>trabajador dependiente</strong> (con contrato de trabajo)</li>
+            <li>Tu contrato comenzó <strong>después del 2 de octubre de 2002</strong></li>
+            <li>Tienes contrato <strong>indefinido, a plazo fijo o por obra/faena</strong></li>
+            <li>Tu empleador cotiza correctamente en AFC</li>
+          </ul>
+        </div>
+        <div class="info-card azul">
+          <h4>📋 Requisitos para COBRAR el beneficio</h4>
+          <p style="margin-bottom:8px"><strong>Contrato Indefinido:</strong></p>
+          <ul>
+            <li>Haber cotizado al menos <strong>12 meses continuos</strong> en AFC con el mismo empleador</li>
+            <li>Estar desempleado (término del contrato)</li>
+            <li>No haber usado el beneficio en los últimos 12 meses</li>
+          </ul>
+          <p style="margin:12px 0 8px"><strong>Contrato a Plazo Fijo / Obra o Faena:</strong></p>
+          <ul>
+            <li>Haber cotizado al menos <strong>6 meses</strong> con uno o más empleadores</li>
+            <li>Que el contrato haya llegado a su término natural</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="info-card">
+          <h4>❌ ¿Quiénes NO tienen derecho?</h4>
+          <ul>
+            <li>Trabajadores <strong>independientes</strong> (boleta de honorarios)</li>
+            <li>Empleados de <strong>casa particular</strong> (tienen su propio sistema)</li>
+            <li>Trabajadores con contrato antes del 2 de octubre de 2002 que no se reacogieron</li>
+            <li>Funcionarios públicos de planta o contrata</li>
+            <li>Pensionados que vuelven a trabajar (en algunos casos)</li>
+          </ul>
+        </div>
+        <div class="info-card oro">
+          <h4>🔔 ¿Qué pasa si me despiden sin justa causa o renuncio?</h4>
+          <ul>
+            <li><strong>Despido Art. 161</strong> (necesidades empresa): accedes a tu cuenta individual + fondo solidario si cumples requisitos</li>
+            <li><strong>Renuncia voluntaria o mutuo acuerdo:</strong> solo puedes retirar tu cuenta individual (sin fondo solidario)</li>
+            <li><strong>Despido Art. 160</strong> (disciplinario): también accedes solo a la cuenta individual</li>
+          </ul>
+        </div>
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <span>Si tu empleador <strong>no te cotiza</strong> en AFC, está infringiendo la ley. Denuncia en la <strong>Inspección del Trabajo</strong> o en la propia AFC. Tienes derecho a que te paguen lo adeudado con reajustes.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: CALCULADORA -->
+  <div id="tab-afc-calc" style="display:none">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Estima tu Beneficio de Cesantía</div>
+        <div class="field">
+          <label>Promedio de tus últimas 12 remuneraciones ($)</label>
+          <input type="number" id="afc-sueldo" placeholder="700000" min="0">
+        </div>
+        <div class="field">
+          <label>Tipo de contrato</label>
+          <select id="afc-tipo">
+            <option value="indefinido">Contrato Indefinido</option>
+            <option value="plazo">Plazo Fijo / Obra o Faena</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Causal de término</label>
+          <select id="afc-causal">
+            <option value="completo">Art. 161 — Necesidades empresa (acceso completo)</option>
+            <option value="individual">Renuncia / Art. 159 / Art. 160 (solo cuenta individual)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Meses cotizados en AFC</label>
+          <input type="number" id="afc-meses" placeholder="24" min="1" max="480">
+        </div>
+        <div class="field">
+          <label>Valor UF actual ($)</label>
+          <input type="number" id="afc-uf" value="37800">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="calcAfc()">Calcular Beneficio</button>
+      </div>
+
+      <div>
+        <div id="afc-resultado" style="display:none">
+          <!-- Resultado se inyecta aquí -->
+        </div>
+        <div id="afc-sin-resultado">
+          <div class="info-card" style="text-align:center;padding:40px 20px">
+            <div style="font-size:56px;margin-bottom:16px;opacity:.3">🏛️</div>
+            <div style="font-size:14px;color:var(--texto3)">Ingresa tus datos y calcula<br>el beneficio mensual estimado.</div>
+          </div>
+        </div>
+        <div class="info-card oro" style="margin-top:16px">
+          <h4>Montos mínimos garantizados (2024)</h4>
+          <p style="font-size:13px;margin-bottom:8px">Si tu beneficio calculado es inferior al mínimo legal, se aplica el mínimo:</p>
+          <ul>
+            <li>Mes 1–3: <strong>mínimo garantizado</strong> por el Estado</li>
+            <li>El mínimo equivale aproximadamente al <strong>50% del salario mínimo</strong></li>
+            <li>El máximo mensual es el <strong>equivalente a 10 UF</strong> por mes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ CONTRATOS ════════ -->
+<section class="page" id="page-contratos">
+  <div class="page-header">
+    <div class="page-tag">Marco Legal</div>
+    <h2 class="page-title">Contratos <em>Laborales</em></h2>
+    <p class="page-desc">Art. 7 y ss. del Código del Trabajo. Tipos de contratos y sus características esenciales.</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">Contrato Indefinido <span class="badge">Más común</span></div>
+        <div class="info-card verde" style="margin:0 0 12px">
+          <p>Sin fecha de término establecida. Ofrece la mayor estabilidad y derechos al trabajador.</p>
+        </div>
+        <ul style="font-size:13px;color:var(--texto2);line-height:2;padding-left:16px">
+          <li>Requiere firma <strong>dentro de 15 días</strong> de inicio de funciones</li>
+          <li>Indemnización por años de servicio al término Art. 161</li>
+          <li>Todas las prestaciones legales completas</li>
+          <li>Feriado progresivo aplicable</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Contrato a Plazo Fijo</div>
+        <div class="info-card azul" style="margin:0 0 12px">
+          <p>Tiene fecha de término determinada. Máximo 1 año (2 años para técnicos y profesionales).</p>
+        </div>
+        <ul style="font-size:13px;color:var(--texto2);line-height:2;padding-left:16px">
+          <li>Si se renueva por <strong>2ª vez</strong> → se vuelve indefinido</li>
+          <li>Si el trabajador sigue laborando al vencimiento → indefinido</li>
+          <li>Si la empresa tiene trabajadores a plazo fijo por más del <strong>25%</strong> del total → los contratos se vuelven indefinidos</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Contrato por Obra o Faena</div>
+        <div class="info-card oro" style="margin:0 0 12px">
+          <p>Dura hasta la conclusión de la obra específica. Muy común en construcción y minería.</p>
+        </div>
+        <ul style="font-size:13px;color:var(--texto2);line-height:2;padding-left:16px">
+          <li>Debe especificar la obra o faena determinada</li>
+          <li>No hay fecha fija pero sí objeto determinado</li>
+          <li>Al término: indemnización proporcional</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Menciones Obligatorias del Contrato</div>
+        <div style="font-size:13px;color:var(--texto2);line-height:2">
+          <div class="info-card" style="margin:0">
+            <ul>
+              <li>Lugar y fecha del contrato</li>
+              <li>RUT e individualización de las partes</li>
+              <li>Determinación de la naturaleza de los servicios</li>
+              <li>Lugar donde prestarán los servicios</li>
+              <li>Monto, forma y período de pago de la remuneración</li>
+              <li>Duración y distribución de la jornada de trabajo</li>
+              <li>Plazo del contrato (si es a plazo fijo)</li>
+              <li>Demás pactos acordados</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ DESPIDOS ════════ -->
+<section class="page" id="page-despidos">
+  <div class="page-header">
+    <div class="page-tag">Marco Legal</div>
+    <h2 class="page-title">Causales de <em>Despido</em></h2>
+    <p class="page-desc">Arts. 159, 160 y 161 del Código del Trabajo. Conoce cada causal y sus consecuencias.</p>
+  </div>
+
+  <div class="alert alert-warning">
+    <span>⚠️</span>
+    <span>El empleador debe <strong>comunicar el despido por escrito</strong> con 3 días hábiles de anticipación (Art. 162 CT), indicar la causal y enviar copia a la Inspección del Trabajo.</span>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">Art. 159 — Causas Objetivas <span class="badge">Sin indem.</span></div>
+        <div class="timeline" style="margin-top:8px">
+          <div class="tl-item"><div class="tl-title">N°1 — Mutuo acuerdo</div><div class="tl-desc">Acuerdo entre ambas partes. Debe constar por escrito.</div></div>
+          <div class="tl-item"><div class="tl-title">N°2 — Renuncia voluntaria</div><div class="tl-desc">El trabajador debe dar aviso por escrito con 30 días de anticipación (recomendado).</div></div>
+          <div class="tl-item"><div class="tl-title">N°3 — Muerte del trabajador</div><div class="tl-desc">Las obligaciones se extinguen. Se paga lo adeudado a herederos.</div></div>
+          <div class="tl-item"><div class="tl-title">N°4 — Vencimiento del plazo</div><div class="tl-desc">Para contratos a plazo fijo. El contrato termina en la fecha pactada.</div></div>
+          <div class="tl-item"><div class="tl-title">N°5 — Conclusión de la obra</div><div class="tl-desc">Para contratos por obra o faena. Al completarse el objeto del contrato.</div></div>
+          <div class="tl-item"><div class="tl-title">N°6 — Caso fortuito o fuerza mayor</div><div class="tl-desc">Hechos ajenos a la voluntad de las partes (catástrofes, etc.).</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Art. 160 — Causas Disciplinarias <span class="badge" style="background:rgba(200,16,46,.2);color:var(--rojo)">Sin indem.</span></div>
+        <div class="timeline" style="margin-top:8px">
+          <div class="tl-item"><div class="tl-title">N°1 — Falta de probidad</div><div class="tl-desc">Deshonestidad, falta de honradez en el desempeño del trabajo.</div></div>
+          <div class="tl-item"><div class="tl-title">N°2 — Conductas de acoso</div><div class="tl-desc">Acoso sexual o laboral (mobbing) debidamente comprobado.</div></div>
+          <div class="tl-item"><div class="tl-title">N°3 — Vías de hecho</div><div class="tl-desc">Agresiones físicas al empleador, compañeros u otras personas en el trabajo.</div></div>
+          <div class="tl-item"><div class="tl-title">N°4 — Injurias al empleador</div><div class="tl-desc">Ofensas graves contra el empleador o su familia.</div></div>
+          <div class="tl-item"><div class="tl-title">N°5 — Conducta inmoral</div><div class="tl-desc">Afecta gravemente la empresa o es contraria a la moral.</div></div>
+          <div class="tl-item"><div class="tl-title">N°6 — Negligencia grave</div><div class="tl-desc">Abandono de trabajo, actos que perjudican materialmente al empleador.</div></div>
+          <div class="tl-item"><div class="tl-title">N°7 — Incumplimiento grave</div><div class="tl-desc">Incumplimiento grave de las obligaciones del contrato.</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Art. 161 — Necesidades de la Empresa <span class="badge" style="background:rgba(46,204,113,.1);color:var(--verde)">Con indem.</span></div>
+        <div class="info-card verde" style="margin:0">
+          <ul>
+            <li>Racionalización o modernización</li>
+            <li>Bajas en la productividad</li>
+            <li>Cambios económicos o tecnológicos</li>
+            <li>Otras causas análogas</li>
+          </ul>
+          <p style="margin-top:8px"><strong>Consecuencia:</strong> Aviso previo de 30 días + Indemnización por años de servicio</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ DERECHOS Y OBLIGACIONES ════════ -->
+<section class="page" id="page-derechos">
+  <div class="page-header">
+    <div class="page-tag">Marco Legal</div>
+    <h2 class="page-title">Derechos y <em>Obligaciones</em></h2>
+    <p class="page-desc">Derechos fundamentales del trabajador y obligaciones recíprocas en la relación laboral chilena.</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">Derechos del Trabajador</div>
+        <div class="info-card verde" style="margin-bottom:12px">
+          <h4>Remuneración</h4>
+          <ul>
+            <li>Sueldo mínimo: <strong>$500.000</strong> (2024, reajustable)</li>
+            <li>Pago máximo cada <strong>30 días</strong> (Art. 55 CT)</li>
+            <li>Reajuste e intereses por mora</li>
+            <li>Liquidación de sueldo mensual obligatoria</li>
+          </ul>
+        </div>
+        <div class="info-card azul" style="margin-bottom:12px">
+          <h4>Jornada y Descanso</h4>
+          <ul>
+            <li>Jornada máxima: <strong>45 horas semanales</strong> (40 hrs desde 2024 gradual)</li>
+            <li>Descanso semanal: al menos <strong>un día completo</strong></li>
+            <li>Hora de colación mínima: <strong>30 minutos</strong></li>
+            <li>Descanso entre jornadas: <strong>12 horas</strong> mínimo</li>
+          </ul>
+        </div>
+        <div class="info-card oro">
+          <h4>Protección y Estabilidad</h4>
+          <ul>
+            <li>Fuero maternal: protección desde embarazo hasta 1 año del niño</li>
+            <li>Fuero sindical para dirigentes</li>
+            <li>No discriminación (Art. 2 CT)</li>
+            <li>Tutela de derechos fundamentales (Art. 485 CT)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Obligaciones del Empleador</div>
+        <div class="info-card" style="margin-bottom:12px">
+          <h4>Obligaciones Legales Fundamentales</h4>
+          <ul>
+            <li>Escriturar el contrato dentro de <strong>15 días</strong> hábiles</li>
+            <li>Pagar cotizaciones previsionales <strong>dentro del mes siguiente</strong></li>
+            <li>Proporcionar los materiales de trabajo necesarios</li>
+            <li>Mantener condiciones de higiene y seguridad</li>
+            <li>Pagar las remuneraciones en forma oportuna</li>
+            <li>Entregar liquidación de sueldo mensualmente</li>
+            <li>Respetar la vida privada e intimidad del trabajador</li>
+          </ul>
+        </div>
+        <div class="info-card" style="margin-bottom:12px">
+          <h4>Obligaciones del Trabajador</h4>
+          <ul>
+            <li>Prestar los servicios en la forma pactada</li>
+            <li>Cumplir las órdenes e instrucciones del empleador</li>
+            <li>Guardar fidelidad y secreto empresarial</li>
+            <li>Cuidar los bienes del empleador</li>
+            <li>Observar el Reglamento Interno de Orden</li>
+          </ul>
+        </div>
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <span>Las cotizaciones impagas generan multas de hasta <strong>150 UTM</strong> y el empleador responde penalmente por apropiación indebida de cotizaciones descontadas no enteradas.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ CONDICIONES LABORALES ════════ -->
+<section class="page" id="page-condiciones">
+  <div class="page-header">
+    <div class="page-tag">Marco Legal</div>
+    <h2 class="page-title">Condiciones <em>Laborales</em></h2>
+    <p class="page-desc">Jornada de trabajo, descansos, horas extraordinarias y normativa de higiene y seguridad.</p>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:12px">⏱️</div>
+      <div class="card-title">Jornada de Trabajo</div>
+      <div class="info-card" style="margin:0">
+        <ul>
+          <li><strong>Máximo:</strong> 45 hrs semanales (transitoriamente)<br>→ 44 hrs desde abril 2024<br>→ 42 hrs desde abril 2026<br>→ 40 hrs desde abril 2028</li>
+          <li><strong>Máximo diario:</strong> 10 horas</li>
+          <li><strong>Mínimo diario:</strong> no hay, pero sí semanal</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:12px">☕</div>
+      <div class="card-title">Colación y Descansos</div>
+      <div class="info-card" style="margin:0">
+        <ul>
+          <li>Colación mínima: <strong>30 minutos</strong> (no se imputa a la jornada)</li>
+          <li>Descanso entre jornadas: <strong>12 horas continuas</strong></li>
+          <li>Día libre semanal garantizado</li>
+          <li>En comercio: descanso compensatorio obligatorio</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:12px">💪</div>
+      <div class="card-title">Horas Extraordinarias</div>
+      <div class="info-card oro" style="margin:0">
+        <ul>
+          <li>Se pagan con recargo de <strong>50%</strong> sobre el valor hora (Art. 32 CT)</li>
+          <li>Máximo <strong>2 horas</strong> diarias</li>
+          <li>Solo en caso de <strong>necesidades o situaciones temporales</strong></li>
+          <li>Deben pactarse por escrito (máx. 3 meses)</li>
+          <li>No son permanentes ni habituales</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:12px">🏥</div>
+      <div class="card-title">Higiene y Seguridad</div>
+      <div class="info-card" style="margin:0">
+        <ul>
+          <li>Art. 184 CT: empleador debe tomar <strong>todas las medidas necesarias</strong> para proteger la vida y salud</li>
+          <li>Reglamento Interno de Higiene y Seguridad obligatorio (≥10 trabajadores)</li>
+          <li>Comité Paritario de H&S obligatorio (≥25 trabajadores)</li>
+          <li>Prevención de riesgos laborales</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:12px">🤱</div>
+      <div class="card-title">Protección a la Maternidad</div>
+      <div class="info-card verde" style="margin:0">
+        <ul>
+          <li>Pre-natal: <strong>6 semanas</strong> de licencia</li>
+          <li>Post-natal: <strong>12 semanas</strong> de licencia</li>
+          <li>Post-natal parental: hasta <strong>12 semanas</strong> adicionales</li>
+          <li>Permiso paternal: <strong>5 días</strong> pagados</li>
+          <li>Sala cuna: empresas con ≥20 mujeres</li>
+          <li>Derecho a amamantamiento durante la jornada</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:12px">🏡</div>
+      <div class="card-title">Teletrabajo</div>
+      <div class="info-card azul" style="margin:0">
+        <ul>
+          <li>Regulado por Ley 21.220 (2020)</li>
+          <li>Debe constar en el contrato o anexo</li>
+          <li>El trabajador puede volver a trabajo presencial</li>
+          <li>Empleador debe proporcionar equipos y conectividad</li>
+          <li>Derecho a desconexión digital (12 hrs continuas)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ MATERIALES DE TRABAJO ════════ -->
+<section class="page" id="page-materiales">
+  <div class="page-header">
+    <div class="page-tag">Obligaciones del Empleador</div>
+    <h2 class="page-title">Materiales de <em>Trabajo</em></h2>
+    <p class="page-desc">El empleador está obligado a proporcionar los elementos y condiciones necesarias para el desempeño de las funciones.</p>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="info-card">
+        <h4>Obligación Legal — Art. 184 CT</h4>
+        <p>El empleador debe <strong>proporcionar todos los elementos necesarios</strong> para que el trabajador pueda cumplir sus funciones con seguridad y eficiencia. El trabajador no puede ser obligado a usar sus propios bienes para el trabajo.</p>
+      </div>
+      <div class="info-card oro">
+        <h4>Materiales que Debe Proveer el Empleador</h4>
+        <ul>
+          <li>Herramientas y equipos necesarios para las funciones</li>
+          <li>Equipos de Protección Personal (EPP): casco, guantes, zapatos de seguridad, etc.</li>
+          <li>Ropa de trabajo o uniforme cuando sea requerido</li>
+          <li>Computadores, software y conectividad (teletrabajo)</li>
+          <li>Insumos y materiales de oficina</li>
+          <li>Acceso a instalaciones sanitarias adecuadas</li>
+        </ul>
+      </div>
+      <div class="info-card verde">
+        <h4>Teletrabajo — Ley 21.220</h4>
+        <ul>
+          <li>El empleador debe proporcionar o pagar el <strong>equipo computacional</strong></li>
+          <li>Conectividad a internet si es necesaria para el trabajo</li>
+          <li>Elementos ergonómicos cuando sea posible</li>
+          <li>El costo de energía y conectividad puede ser compensado</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="info-card azul">
+        <h4>EPP — Equipo de Protección Personal</h4>
+        <p style="margin-bottom:8px">Obligatorio en trabajos con riesgo. El empleador debe:</p>
+        <ul>
+          <li>Identificar los riesgos del puesto de trabajo</li>
+          <li>Seleccionar el EPP adecuado según la normativa técnica</li>
+          <li>Proporcionar el EPP en forma gratuita y oportuna</li>
+          <li>Capacitar en el uso correcto</li>
+          <li>Mantener y reponer el EPP cuando sea necesario</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h4>¿Qué ocurre si el empleador no provee materiales?</h4>
+        <ul>
+          <li>El trabajador puede negarse a trabajar sin poner en riesgo su puesto</li>
+          <li>Denuncia ante la <strong>Inspección del Trabajo</strong></li>
+          <li>El empleador puede ser multado por la DT</li>
+          <li>En caso de accidente por falta de EPP, la responsabilidad recae sobre el empleador</li>
+          <li>Posible demanda por daños y perjuicios</li>
+        </ul>
+      </div>
+      <div class="alert alert-warning">
+        <span>⚠️</span>
+        <span>Si el trabajador usa bienes propios para el trabajo (vehículo, herramientas, teléfono), tiene derecho a una <strong>compensación o asignación</strong> por ese uso. Esto debe estar pactado en el contrato.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ANALIZAR CONTRATO (IA) ════════ -->
+<section class="page" id="page-analizar">
+  <div class="page-header">
+    <div class="page-tag">Herramienta IA</div>
+    <h2 class="page-title">Analizar tu <em>Contrato</em></h2>
+    <p class="page-desc">Sube tu contrato laboral y la IA te lo explicará en lenguaje simple, cláusula por cláusula, referenciando el Código del Trabajo chileno.</p>
+  </div>
+
+  <div class="alert alert-warning">
+    <span>⚠️</span>
+    <span><strong>Privacidad:</strong> Tu contrato se envía directamente a la API de IA para el análisis. No almacenamos ningún archivo ni dato personal. El análisis es solo de referencia y <strong>no reemplaza asesoría legal profesional</strong>.</span>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <!-- CONFIG API KEY -->
+      <div class="card" id="card-apikey">
+        <div class="card-title">1. Configura tu API Key <span class="badge">Requerido</span></div>
+        <p style="font-size:13px;color:var(--texto2);margin-bottom:16px;line-height:1.6">
+          Para el análisis se necesita una API Key de Anthropic (Claude). Tu clave se guarda <strong>solo en tu navegador</strong> (localStorage) y nunca se envía a terceros.
+        </p>
+        <div class="field">
+          <label>API Key de Anthropic</label>
+          <div style="display:flex;gap:8px">
+            <input type="password" id="api-key" placeholder="sk-ant-..." style="flex:1">
+            <button class="btn btn-ghost" onclick="toggleKeyVis()" id="btn-eye" title="Mostrar/ocultar">👁️</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Modelo</label>
+          <select id="api-model">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Recomendado)</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Más rápido)</option>
+            <option value="claude-opus-4-20250514">Claude Opus 4 (Más profundo)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="saveApiKey()">Guardar Clave</button>
+        <div id="key-status" style="margin-top:8px;font-size:12px;color:var(--texto3)"></div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">2. Sube tu Contrato</div>
+        <div id="drop-zone" style="
+          border:2px dashed var(--borde);border-radius:12px;
+          padding:40px 24px;text-align:center;cursor:pointer;
+          transition:all .3s;background:var(--bg);
+        " onclick="document.getElementById('file-input').click()"
+           ondragover="event.preventDefault();this.style.borderColor='var(--rojo)';this.style.background='var(--rojo-suave)'"
+           ondragleave="this.style.borderColor='var(--borde)';this.style.background='var(--bg)'"
+           ondrop="handleDrop(event)">
+          <div style="font-size:48px;margin-bottom:12px;opacity:.6">📄</div>
+          <div style="font-size:15px;color:var(--texto);font-weight:500;margin-bottom:4px">
+            Arrastra tu contrato aquí
+          </div>
+          <div style="font-size:13px;color:var(--texto3)">
+            o haz clic para seleccionar — PDF o imagen (JPG, PNG)
+          </div>
+          <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleFile(this.files[0])">
+        </div>
+        <div id="file-info" style="display:none;margin-top:12px;padding:12px 16px;background:var(--bg3);border-radius:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div id="file-name" style="font-size:14px;font-weight:500;color:var(--texto)"></div>
+              <div id="file-size" style="font-size:12px;color:var(--texto3);margin-top:2px"></div>
+            </div>
+            <button class="btn btn-ghost" onclick="clearFile()" style="padding:6px 12px;font-size:12px">✕ Quitar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREGUNTA OPCIONAL -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">3. ¿Tienes una duda específica? <span class="badge" style="background:var(--bg3);color:var(--texto3)">Opcional</span></div>
+        <div class="field" style="margin-bottom:0">
+          <textarea id="user-question" rows="3" placeholder="Ej: ¿Pueden obligarme a trabajar los domingos? ¿Mi cláusula de no competencia es legal? ¿Me pueden despedir estando con licencia?" style="
+            width:100%;background:var(--bg3);border:1px solid var(--borde);
+            border-radius:8px;padding:10px 14px;color:var(--texto);
+            font-family:'Outfit',sans-serif;font-size:14px;outline:none;
+            resize:vertical;transition:border-color .2s;
+          "></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" style="margin-top:16px;padding:14px;font-size:15px" onclick="analizarContrato()" id="btn-analizar">
+        🤖 Analizar Contrato
+      </button>
+    </div>
+
+    <div>
+      <!-- RESULTADO DEL ANÁLISIS -->
+      <div class="card" id="card-resultado" style="min-height:300px">
+        <div class="card-title">Análisis del Contrato</div>
+
+        <!-- Estado: esperando -->
+        <div id="analisis-vacio" style="text-align:center;padding:40px 20px">
+          <div style="font-size:56px;margin-bottom:16px;opacity:.3">⚖️</div>
+          <div style="font-size:15px;color:var(--texto3)">
+            Sube tu contrato y presiona analizar.<br>
+            La IA te explicará cada cláusula.
+          </div>
+        </div>
+
+        <!-- Estado: cargando -->
+        <div id="analisis-loading" style="display:none;text-align:center;padding:40px 20px">
+          <div class="spinner" style="
+            width:40px;height:40px;border:3px solid var(--bg4);
+            border-top-color:var(--rojo);border-radius:50%;
+            animation:spin 1s linear infinite;margin:0 auto 16px;
+          "></div>
+          <div style="font-size:15px;color:var(--texto2);font-weight:500">Analizando contrato...</div>
+          <div style="font-size:13px;color:var(--texto3);margin-top:4px" id="loading-sub">Extrayendo texto del documento</div>
+        </div>
+
+        <!-- Estado: resultado -->
+        <div id="analisis-resultado" style="display:none">
+          <div id="analisis-contenido" style="
+            font-size:14px;color:var(--texto);line-height:1.8;
+          "></div>
+        </div>
+
+        <!-- Estado: error -->
+        <div id="analisis-error" style="display:none">
+          <div class="alert alert-warning" id="error-msg"></div>
+        </div>
+      </div>
+
+      <!-- TIPS -->
+      <div class="info-card verde" style="margin-top:16px">
+        <h4>Ejemplos de preguntas que puedes hacer</h4>
+        <ul>
+          <li>"¿Mi jornada laboral es legal según el Código del Trabajo?"</li>
+          <li>"¿Esta cláusula de exclusividad es válida?"</li>
+          <li>"¿Tengo derecho a indemnización si me despiden?"</li>
+          <li>"¿Qué significa esta cláusula sobre confidencialidad?"</li>
+          <li>"¿Mi contrato a plazo fijo se puede renovar indefinidamente?"</li>
+          <li>"¿Los descuentos que me hacen son legales?"</li>
+        </ul>
+      </div>
+      <div class="info-card oro" style="margin-top:16px">
+        <h4>¿No tienes API Key?</h4>
+        <p>Crea una cuenta gratuita en <strong>console.anthropic.com</strong> y genera una API Key. El análisis de un contrato típico cuesta menos de $0.05 USD.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ─── NAVEGACIÓN ───
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')?.includes("'"+id+"'")) n.classList.add('active');
+  });
+  if(window.innerWidth<=900) closeSidebar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function switchTab(btn,tabId){
+  const section = btn.closest('section');
+  // Desactivar todos los tabs del botón
+  section.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  // Recoger todos los IDs de tab referenciados en los botones de esta sección
+  section.querySelectorAll('.tab').forEach(t=>{
+    const onclick=t.getAttribute('onclick')||'';
+    const match=onclick.match(/switchTab\(this,'([^']+)'\)/);
+    if(match){
+      const el=document.getElementById(match[1]);
+      if(el) el.style.display = match[1]===tabId?'block':'none';
+    }
+  });
+}
+
+// ─── UTILS ───
+const fmt = n => '$'+Math.round(n).toLocaleString('es-CL');
+const fmtNum = n => n.toLocaleString('es-CL');
+
+function diffFechas(inicio, fin){
+  const d1=new Date(inicio), d2=new Date(fin);
+  let y=d2.getFullYear()-d1.getFullYear();
+  let m=d2.getMonth()-d1.getMonth();
+  let d=d2.getDate()-d1.getDate();
+  if(d<0){m--;d+=new Date(d2.getFullYear(),d2.getMonth(),0).getDate();}
+  if(m<0){y--;m+=12;}
+  const totalDias=Math.floor((d2-d1)/(1000*60*60*24));
+  return {years:y,months:m,days:d,totalDias};
+}
+
+// ─── AÑOS DE SERVICIO ───
+function calcAnos(){
+  const inicio=document.getElementById('anos-inicio').value;
+  const termino=document.getElementById('anos-termino').value||new Date().toISOString().split('T')[0];
+  if(!inicio){alert('Ingresa la fecha de inicio');return;}
+  const r=diffFechas(inicio,termino);
+  const res=document.getElementById('res-anos');
+  res.classList.add('show');
+  document.getElementById('anos-total').textContent=`${r.years} años, ${r.months} meses, ${r.days} días`;
+  document.getElementById('anos-anos').textContent=r.years;
+  document.getElementById('anos-meses').textContent=r.months;
+  document.getElementById('anos-dias').textContent=r.days;
+  document.getElementById('anos-diasTotal').textContent=fmtNum(r.totalDias)+' días';
+  document.getElementById('anos-detalle').textContent=
+    r.months>=6?'⚡ Fracción mayor a 6 meses: cuenta como año completo para indemnización':'ℹ️ Fracción menor a 6 meses no se cuenta como año adicional para indemnización';
+}
+
+// ─── VACACIONES ───
+function calcVacaciones(){
+  const ingreso=document.getElementById('vac-ingreso').value;
+  const hoy=document.getElementById('vac-hoy').value||new Date().toISOString().split('T')[0];
+  const previos=parseInt(document.getElementById('vac-previos').value)||0;
+  const tomadas=parseInt(document.getElementById('vac-tomadas').value)||0;
+  if(!ingreso){alert('Ingresa la fecha de ingreso');return;}
+  const r=diffFechas(ingreso,hoy);
+  const fraccYear=(r.months*30+r.days)/365;
+  const diasProp=Math.floor(15*fraccYear);
+  const totalAnos=r.years+previos;
+  let progresivo=0;
+  if(totalAnos>=10) progresivo=Math.floor((totalAnos-10)/3);
+  const diasAnuales=15+progresivo;
+  const proporcional=r.years===0?diasProp:diasAnuales;
+  const pendientes=Math.max(0,proporcional-tomadas);
+  const res=document.getElementById('res-vac');
+  res.classList.add('show');
+  document.getElementById('vac-total').textContent=pendientes+' días hábiles';
+  document.getElementById('vac-base').textContent='15';
+  document.getElementById('vac-prog').textContent=progresivo+' días extra';
+  document.getElementById('vac-prop').textContent=r.years===0?diasProp+' (proporcional)':diasAnuales+' (anual completo)';
+  document.getElementById('vac-pend').textContent=pendientes+' días';
+}
+
+// ─── FINIQUITO ───
+function calcFiniquito(){
+  const sueldo=parseFloat(document.getElementById('fin-sueldo').value)||0;
+  const uf=parseFloat(document.getElementById('fin-uf').value)||37800;
+  const ingreso=document.getElementById('fin-ingreso').value;
+  const termino=document.getElementById('fin-termino').value;
+  const causal=document.getElementById('fin-causal').value;
+  const vacP=parseFloat(document.getElementById('fin-vacp').value)||0;
+  const aviso=document.getElementById('fin-aviso').value;
+  if(!sueldo||!ingreso||!termino){alert('Completa todos los datos requeridos');return;}
+
+  const r=diffFechas(ingreso,termino);
+  const tope90uf=90*uf;
+  const baseInd=Math.min(sueldo,tope90uf);
+  const anosIndem=Math.min(11, r.years+(r.months>=6?1:0));
+
+  let indem=0, avisoMonto=0, vacMonto=0, propMes=0;
+
+  // Vacaciones pendientes (1 día hábil = sueldo/30 × 1.25 aprox)
+  vacMonto=vacP*(sueldo/30)*1.25;
+
+  // Proporcional del mes
+  const diasMes=new Date(termino).getDate();
+  propMes=(sueldo/30)*diasMes;
+
+  // Indemnización según causal
+  if(causal==='161n1'||causal==='161n2'){
+    indem=baseInd*anosIndem;
+    if(aviso==='si') avisoMonto=sueldo;
+  }
+
+  const total=indem+avisoMonto+vacMonto+propMes;
+
+  document.getElementById('fin-total').textContent=fmt(total);
+  document.getElementById('fin-desglose').innerHTML=
+    `<div class="result-item"><div class="result-item-label">Indem. años servicio</div><div class="result-item-value">${fmt(indem)}</div></div>
+     <div class="result-item"><div class="result-item-label">Aviso previo (si aplica)</div><div class="result-item-value">${fmt(avisoMonto)}</div></div>
+     <div class="result-item"><div class="result-item-label">Vacaciones pendientes</div><div class="result-item-value">${fmt(vacMonto)}</div></div>
+     <div class="result-item"><div class="result-item-label">Proporcional del mes</div><div class="result-item-value">${fmt(propMes)}</div></div>`;
+  document.getElementById('fin-nota').textContent=
+    causal==='160'?'⚠️ Despido disciplinario: NO incluye indemnización por años de servicio.':
+    causal.startsWith('159')?'ℹ️ Causal Art. 159: NO incluye indemnización por años de servicio.':
+    `✅ ${anosIndem} año(s) de servicio considerados. Base de cálculo: ${fmt(baseInd)} (${baseInd<sueldo?'tope 90 UF aplicado':'sueldo completo'}).`;
+}
+
+// ─── AVISO PREVIO ───
+document.getElementById('aviso-tipo').addEventListener('change',function(){
+  document.getElementById('campo-dias-aviso').style.display=
+    this.value==='parcial'?'block':'none';
+});
+function calcAviso(){
+  const sueldo=parseFloat(document.getElementById('aviso-sueldo').value)||0;
+  const tipo=document.getElementById('aviso-tipo').value;
+  const diasDados=parseInt(document.getElementById('aviso-dias-dados').value)||0;
+  if(!sueldo){alert('Ingresa el sueldo');return;}
+  const diario=sueldo/30;
+  let monto=0,detalle='';
+  if(tipo==='no'){monto=sueldo;detalle='30 días de remuneración (aviso completo no dado)';}
+  else if(tipo==='si'){monto=0;detalle='✅ Se dio aviso previo de 30+ días. No hay pago adicional.';}
+  else{const faltantes=30-diasDados;monto=diario*faltantes;detalle=`Días faltantes: ${faltantes} × ${fmt(diario)}/día`;}
+  const res=document.getElementById('res-aviso');
+  res.classList.add('show');
+  document.getElementById('aviso-monto').textContent=monto>0?fmt(monto):'$0';
+  document.getElementById('aviso-detalle').textContent=detalle;
+}
+
+// ─── INDEMNIZACIÓN ───
+function calcIndemnizacion(){
+  const sueldo=parseFloat(document.getElementById('ind-sueldo').value)||0;
+  const uf=parseFloat(document.getElementById('ind-uf').value)||37800;
+  const ingreso=document.getElementById('ind-ingreso').value;
+  const termino=document.getElementById('ind-termino').value;
+  const recargo=parseFloat(document.getElementById('ind-recargo').value)||1;
+  if(!sueldo||!ingreso||!termino){alert('Completa los datos');return;}
+  const r=diffFechas(ingreso,termino);
+  const tope90uf=90*uf;
+  const topesU=sueldo>tope90uf;
+  const base=Math.min(sueldo,tope90uf);
+  const anos=Math.min(11,r.years+(r.months>=6?1:0));
+  const base_total=base*anos*recargo;
+  const res=document.getElementById('res-ind');
+  res.classList.add('show');
+  document.getElementById('ind-total').textContent=fmt(base_total);
+  document.getElementById('ind-anos').textContent=anos+' año(s)';
+  document.getElementById('ind-base').textContent=fmt(base)+'/mes';
+  document.getElementById('ind-tope').textContent=topesU?'Sí (90 UF = '+fmt(tope90uf)+')':'No aplica';
+  document.getElementById('ind-recargo-val').textContent=(recargo*100)+'%';
+  document.getElementById('ind-nota').textContent=
+    anos===11?'⚠️ Se aplicó el tope de 11 años máximo.':'';
+}
+
+// ─── DESCUENTOS AFP / SALUD ───
+function calcDescuentos(){
+  const sueldo=parseFloat(document.getElementById('desc-sueldo').value)||0;
+  const afpCom=parseFloat(document.getElementById('desc-afp').value)||1.44;
+  const saludPct=parseFloat(document.getElementById('desc-salud').value)||7;
+  if(!sueldo){alert('Ingresa el sueldo');return;}
+  const afp10=sueldo*0.10;
+  const afpCom2=sueldo*(afpCom/100);
+  const salud=sueldo*(saludPct/100);
+  const totalDesc=afp10+afpCom2+salud;
+  const liquido=sueldo-totalDesc;
+  const res=document.getElementById('res-desc');
+  res.classList.add('show');
+  document.getElementById('desc-liquido').textContent=fmt(liquido);
+  document.getElementById('desc-tabla').innerHTML=
+    `<div class="result-item"><div class="result-item-label">Cotización AFP (10%)</div><div class="result-item-value">${fmt(afp10)}</div></div>
+     <div class="result-item"><div class="result-item-label">Comisión AFP (${afpCom}%)</div><div class="result-item-value">${fmt(afpCom2)}</div></div>
+     <div class="result-item"><div class="result-item-label">Salud (${saludPct}%)</div><div class="result-item-value">${fmt(salud)}</div></div>
+     <div class="result-item"><div class="result-item-label">Total descuentos</div><div class="result-item-value">${fmt(totalDesc)}</div></div>`;
+}
+
+// ─── AFC CESANTÍA ───
+function calcAfc(){
+  const sueldo = parseFloat(document.getElementById('afc-sueldo').value)||0;
+  const tipo   = document.getElementById('afc-tipo').value;
+  const causal = document.getElementById('afc-causal').value;
+  const meses  = parseInt(document.getElementById('afc-meses').value)||0;
+  const uf     = parseFloat(document.getElementById('afc-uf').value)||37800;
+
+  if(!sueldo){ alert('Ingresa tu remuneración promedio'); return; }
+  if(!meses){  alert('Ingresa los meses cotizados');     return; }
+
+  const minMeses = tipo==='indefinido' ? 12 : 6;
+  const maxMes   = 10 * uf; // tope 10 UF por mes
+
+  // Verifica si califica
+  if(meses < minMeses){
+    document.getElementById('afc-sin-resultado').style.display='none';
+    document.getElementById('afc-resultado').style.display='block';
+    document.getElementById('afc-resultado').innerHTML=`
+      <div class="alert alert-warning">
+        <span>⚠️</span>
+        <span>Con <strong>${meses} meses cotizados</strong> aún no cumples el mínimo de <strong>${minMeses} meses</strong> requeridos para el tipo de contrato seleccionado.<br><br>
+        Te faltan <strong>${minMeses-meses} mes(es)</strong> más de cotizaciones para tener derecho al beneficio.</span>
+      </div>`;
+    return;
+  }
+
+  // Porcentajes por mes según tipo de acceso
+  // Indefinido Art.161 (acceso completo): 70,55,45,35,30
+  // Solo cuenta individual:               50,50,50 (máximo 3 meses o lo que haya)
+  let porcentajes, mesesBenef, titulo;
+  if(causal==='completo' && tipo==='indefinido'){
+    porcentajes = [0.70, 0.55, 0.45, 0.35, 0.30];
+    mesesBenef  = 5;
+    titulo      = 'Acceso Completo (Cuenta Individual + Fondo Solidario)';
+  } else if(causal==='completo' && tipo==='plazo'){
+    porcentajes = [0.70, 0.55, 0.45];
+    mesesBenef  = 3;
+    titulo      = 'Acceso Completo — Plazo Fijo (Cuenta Individual + Fondo Solidario)';
+  } else {
+    // Solo cuenta individual — estimado según saldo acumulado
+    // saldo est = meses * sueldo * 2.2% (trabajador 0.6 + empleador 1.6)
+    const saldoEst = meses * sueldo * 0.022;
+    porcentajes = [0.50, 0.50, 0.50];
+    mesesBenef  = Math.min(3, Math.floor(saldoEst / (sueldo * 0.50)) || 1);
+    titulo      = 'Solo Cuenta Individual (renuncia / Art.159 / Art.160)';
+  }
+
+  // Calcular montos por mes
+  let filas = '';
+  let total = 0;
+  porcentajes.forEach((pct, i) => {
+    const monto = Math.min(sueldo * pct, maxMes);
+    total += monto;
+    const pct100 = Math.round(pct*100);
+    const ancho  = pct100;
+    filas += `
+      <tr>
+        <td style="font-weight:600;color:var(--texto)">Mes ${i+1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="flex:1">
+              <div class="prog-bar" style="margin:0">
+                <div class="prog-fill" style="width:${ancho}%"></div>
+              </div>
+            </div>
+            <span style="font-size:12px;color:var(--texto3);width:28px;text-align:right">${pct100}%</span>
+          </div>
+        </td>
+        <td class="monto">${fmt(monto)}</td>
+        ${monto >= maxMes ? '<td style="font-size:11px;color:var(--oro)">Tope 10 UF</td>' : '<td></td>'}
+      </tr>`;
+  });
+
+  // Saldo est cuenta individual
+  const saldoCuenta = meses * sueldo * (tipo==='indefinido' ? 0.022 : 0.030);
+
+  document.getElementById('afc-sin-resultado').style.display='none';
+  document.getElementById('afc-resultado').style.display='block';
+  document.getElementById('afc-resultado').innerHTML=`
+    <div class="result-box show" style="display:block;background:var(--bg2);margin-bottom:16px">
+      <div class="result-label">Beneficio Total Estimado</div>
+      <div class="result-value">${fmt(total)}</div>
+      <div class="result-sub" style="margin-top:8px">${titulo}</div>
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="card-title" style="font-size:15px;margin-bottom:12px">Subsidio Mensual Estimado</div>
+      <table class="tabla">
+        <tr>
+          <th>Período</th>
+          <th>% del promedio</th>
+          <th>Monto est.</th>
+          <th></th>
+        </tr>
+        ${filas}
+      </table>
+      <div class="divider" style="margin:12px 0"></div>
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="result-item-label">Saldo est. cuenta individual</div>
+          <div class="result-item-value">${fmt(saldoCuenta)}</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-label">Meses cotizados</div>
+          <div class="result-item-value">${meses} meses</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-label">Tope máximo por mes</div>
+          <div class="result-item-value">10 UF = ${fmt(maxMes)}</div>
+        </div>
+        <div class="result-item">
+          <div class="result-item-label">Duración del beneficio</div>
+          <div class="result-item-value">${porcentajes.length} meses</div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px">
+        <span>ℹ️</span>
+        <span>Estimación referencial. El monto real lo calcula AFC según tus datos exactos. Verifica en <strong>www.afc.cl</strong></span>
+      </div>
+    </div>`;
+}
+
+// ─── SET FECHA HOY ───
+window.addEventListener('DOMContentLoaded',()=>{
+  const hoy=new Date().toISOString().split('T')[0];
+  const campos=['vac-hoy','fin-termino','ind-termino','anos-termino'];
+  campos.forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=hoy;});
+  // Restaurar API key si existe
+  const saved=localStorage.getItem('laborcl_apikey');
+  if(saved){document.getElementById('api-key').value=saved;document.getElementById('key-status').innerHTML='<span style="color:var(--verde)">✅ Clave guardada en este navegador</span>';}
+  const savedModel=localStorage.getItem('laborcl_model');
+  if(savedModel){document.getElementById('api-model').value=savedModel;}
+});
+
+// ════════════════════════════════════════════
+// ═══ ANALIZADOR DE CONTRATOS CON IA ═══════
+// ════════════════════════════════════════════
+
+let uploadedFileData=null;
+let uploadedFileType=null;
+
+// ─── API KEY ───
+function saveApiKey(){
+  const key=document.getElementById('api-key').value.trim();
+  const model=document.getElementById('api-model').value;
+  if(!key){document.getElementById('key-status').innerHTML='<span style="color:var(--rojo)">Ingresa una clave válida</span>';return;}
+  localStorage.setItem('laborcl_apikey',key);
+  localStorage.setItem('laborcl_model',model);
+  document.getElementById('key-status').innerHTML='<span style="color:var(--verde)">✅ Clave guardada correctamente</span>';
+}
+function toggleKeyVis(){
+  const inp=document.getElementById('api-key');
+  inp.type=inp.type==='password'?'text':'password';
+}
+
+// ─── FILE HANDLING ───
+function handleDrop(e){
+  e.preventDefault();
+  e.currentTarget.style.borderColor='var(--borde)';
+  e.currentTarget.style.background='var(--bg)';
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+}
+
+function handleFile(file){
+  if(!file) return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  const validExts=['pdf','jpg','jpeg','png','webp'];
+  if(!validExts.includes(ext)){
+    alert('Formato no soportado. Usa PDF, JPG o PNG.');return;
+  }
+  const maxSize=20*1024*1024; // 20MB
+  if(file.size>maxSize){alert('El archivo es demasiado grande (máx 20MB).');return;}
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    uploadedFileData=e.target.result;
+    if(ext==='pdf'){
+      uploadedFileType='application/pdf';
+    } else {
+      uploadedFileType=file.type;
+    }
+    document.getElementById('file-info').style.display='block';
+    document.getElementById('file-name').textContent=file.name;
+    document.getElementById('file-size').textContent=(file.size/1024).toFixed(1)+' KB';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearFile(){
+  uploadedFileData=null;uploadedFileType=null;
+  document.getElementById('file-info').style.display='none';
+  document.getElementById('file-input').value='';
+}
+
+// ─── EXTRACT TEXT FROM PDF (usando pdf.js CDN) ───
+async function extractPdfText(base64Data){
+  // Cargar pdf.js dinámicamente si no existe
+  if(!window.pdfjsLib){
+    await new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload=resolve;s.onerror=reject;
+      document.head.appendChild(s);
+    });
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const raw=atob(base64Data.split(',')[1]);
+  const uint8=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) uint8[i]=raw.charCodeAt(i);
+  const pdf=await pdfjsLib.getDocument({data:uint8}).promise;
+  let text='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    text+=content.items.map(it=>it.str).join(' ')+'\n\n';
+  }
+  return text.trim();
+}
+
+// ─── SIMPLE MARKDOWN TO HTML ───
+function mdToHtml(md){
+  let html=md
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^---$/gm,'<hr>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s,m=>'<ul>'+m+'</ul>');
+  // Wrap consecutive <li> in <ul>
+  html=html.replace(/(<li>[\s\S]*?<\/li>)(?=\s*(?:<li>|$))/g,function(match){
+    return match;
+  });
+  // Wrap loose text in <p>
+  const lines=html.split('\n');
+  const result=[];
+  let inList=false;
+  for(const line of lines){
+    const trimmed=line.trim();
+    if(!trimmed){result.push('');continue;}
+    if(trimmed.startsWith('<li>')){
+      if(!inList){result.push('<ul>');inList=true;}
+      result.push(trimmed);
+    } else {
+      if(inList){result.push('</ul>');inList=false;}
+      if(trimmed.startsWith('<h')||trimmed.startsWith('<blockquote')||trimmed.startsWith('<hr')||trimmed.startsWith('<ul')||trimmed.startsWith('</ul')){
+        result.push(trimmed);
+      } else {
+        result.push('<p>'+trimmed+'</p>');
+      }
+    }
+  }
+  if(inList) result.push('</ul>');
+  return result.join('\n');
+}
+
+// ─── SISTEMA PROMPT CON CÓDIGO DEL TRABAJO ───
+const SYSTEM_PROMPT=`Eres un abogado laboralista chileno experto en el Código del Trabajo (DFL N°1). Tu tarea es analizar contratos laborales chilenos y explicarlos en lenguaje simple y accesible.
+
+INSTRUCCIONES:
+1. Analiza el contrato cláusula por cláusula
+2. Explica cada cláusula en lenguaje simple que cualquier persona entienda
+3. Referencia los artículos específicos del Código del Trabajo que aplican
+4. Identifica cláusulas que podrían ser ilegales, abusivas o desfavorables para el trabajador
+5. Da ejemplos prácticos cuando sea útil
+
+FORMATO DE RESPUESTA:
+# Resumen General
+Breve resumen del tipo de contrato y condiciones principales.
+
+## Datos del Contrato
+- Tipo de contrato, partes, fecha, etc.
+
+## Análisis Cláusula por Cláusula
+
+### [Nombre de la cláusula]
+- **Qué dice:** Resumen en lenguaje simple
+- **Qué significa para ti:** Explicación práctica
+- **Artículo del Código del Trabajo:** Referencia legal
+- **Estado:** ✅ Legal / ⚠️ Revisar / ❌ Posiblemente ilegal
+
+## ⚠️ Alertas y Recomendaciones
+Lista de cláusulas que el trabajador debería revisar con cuidado.
+
+## Tus Derechos que NO Pueden Quitarte
+Recordatorio de derechos irrenunciables según Art. 5 del Código del Trabajo.
+
+NORMATIVA BASE:
+- Código del Trabajo (DFL N°1) — Arts. 1 al 511
+- Art. 5: Los derechos laborales son irrenunciables
+- Art. 7-11: Definición y requisitos del contrato de trabajo
+- Art. 22-40: Jornada de trabajo (45 hrs semanales, transitando a 40 hrs)
+- Art. 41-52: Remuneraciones (sueldo mínimo, forma de pago)
+- Art. 53-54: Protección de remuneraciones
+- Art. 55-59: Gratificaciones
+- Art. 67-76: Vacaciones (15 días hábiles anuales)
+- Art. 159: Causales de término (mutuo acuerdo, renuncia, muerte, plazo, obra, fuerza mayor)
+- Art. 160: Causales disciplinarias (sin indemnización)
+- Art. 161: Necesidades de la empresa (con indemnización + aviso previo)
+- Art. 163: Indemnización por años de servicio (1 mes por año, tope 11 años)
+- Art. 172: Tope de 90 UF por año para indemnización
+- Art. 184: Obligación del empleador de proteger vida y salud
+- Art. 194-208: Protección a la maternidad
+- Ley 16.744: Accidentes del trabajo
+- Ley 19.728: Seguro de cesantía
+- Ley 21.220: Teletrabajo
+- DL 3.500: Sistema de AFP
+
+Responde SIEMPRE en español chileno, de forma cercana y comprensible.`;
+
+// ─── LLAMADA A LA API DE ANTHROPIC ───
+async function analizarContrato(){
+  const apiKey=localStorage.getItem('laborcl_apikey');
+  if(!apiKey){
+    alert('Primero guarda tu API Key de Anthropic');
+    showPage('analizar');return;
+  }
+  if(!uploadedFileData){
+    alert('Sube un contrato primero (PDF o imagen)');return;
+  }
+
+  // UI: mostrar loading
+  document.getElementById('analisis-vacio').style.display='none';
+  document.getElementById('analisis-error').style.display='none';
+  document.getElementById('analisis-resultado').style.display='none';
+  document.getElementById('analisis-loading').style.display='block';
+  document.getElementById('btn-analizar').disabled=true;
+  document.getElementById('btn-analizar').textContent='⏳ Analizando...';
+
+  const model=localStorage.getItem('laborcl_model')||'claude-sonnet-4-20250514';
+  const userQuestion=document.getElementById('user-question').value.trim();
+
+  try{
+    let contentBlocks=[];
+    const isPdf=uploadedFileType==='application/pdf';
+    const isImage=uploadedFileType?.startsWith('image/');
+
+    if(isPdf){
+      // Extraer texto del PDF
+      document.getElementById('loading-sub').textContent='Extrayendo texto del PDF...';
+      const pdfText=await extractPdfText(uploadedFileData);
+      if(!pdfText||pdfText.length<50){
+        // PDF sin texto extraíble (escaneado), intentar como imagen — avisar
+        throw new Error('El PDF no contiene texto extraíble. Intenta subir una imagen (captura de pantalla) del contrato, o un PDF con texto seleccionable.');
+      }
+      document.getElementById('loading-sub').textContent='Enviando a Claude para análisis...';
+      contentBlocks.push({type:'text',text:'CONTRATO LABORAL A ANALIZAR:\n\n'+pdfText});
+    } else if(isImage){
+      // Enviar imagen directamente a Claude (visión)
+      document.getElementById('loading-sub').textContent='Enviando imagen a Claude para análisis...';
+      const base64=uploadedFileData.split(',')[1];
+      const mediaType=uploadedFileType;
+      contentBlocks.push({
+        type:'image',
+        source:{type:'base64',media_type:mediaType,data:base64}
+      });
+      contentBlocks.push({type:'text',text:'Analiza este contrato laboral chileno que aparece en la imagen.'});
+    }
+
+    if(userQuestion){
+      contentBlocks.push({type:'text',text:'\n\nPREGUNTA ESPECÍFICA DEL TRABAJADOR:\n'+userQuestion});
+    }
+
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:model,
+        max_tokens:4096,
+        system:SYSTEM_PROMPT,
+        messages:[{role:'user',content:contentBlocks}]
+      })
+    });
+
+    if(!response.ok){
+      const err=await response.json().catch(()=>null);
+      const msg=err?.error?.message||`Error ${response.status}: ${response.statusText}`;
+      throw new Error(msg);
+    }
+
+    const data=await response.json();
+    const text=data.content?.[0]?.text||'No se recibió respuesta.';
+
+    // Mostrar resultado
+    document.getElementById('analisis-loading').style.display='none';
+    document.getElementById('analisis-resultado').style.display='block';
+    document.getElementById('analisis-contenido').innerHTML=mdToHtml(text);
+
+  } catch(err){
+    document.getElementById('analisis-loading').style.display='none';
+    document.getElementById('analisis-error').style.display='block';
+    document.getElementById('error-msg').innerHTML='<span>❌</span><span><strong>Error:</strong> '+err.message+'</span>';
+  } finally {
+    document.getElementById('btn-analizar').disabled=false;
+    document.getElementById('btn-analizar').textContent='🤖 Analizar Contrato';
+  }
+}
+
+// ═══ AUTO-UPDATE WEB/APK ═══
+const APP_VERSION='1.0.0';
+const UPDATE_REMOTE_URL='https://raw.githubusercontent.com/laborcl/laborcl-app/main/update-remote.json';
+
+async function webCheckUpdate(){
+  try{
+    const resp=await fetch(UPDATE_REMOTE_URL,{cache:'no-store'});
+    if(!resp.ok) return;
+    const remote=await resp.json();
+    const isNewer=(a,b)=>{const x=a.split('.').map(Number),y=b.split('.').map(Number);for(let i=0;i<3;i++){if((y[i]||0)>(x[i]||0))return true;if((y[i]||0)<(x[i]||0))return false;}return false;};
+    if(isNewer(APP_VERSION,remote.version)){
+      const bar=document.createElement('div');
+      bar.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#C8102E;color:#fff;padding:12px 20px;font-size:14px;display:flex;align-items:center;justify-content:space-between;font-family:Outfit,sans-serif;box-shadow:0 -4px 20px rgba(0,0,0,.5)';
+      bar.innerHTML=`<span>🔄 <strong>LaborCL v${remote.version}</strong> disponible — ${remote.notes||'Nueva versión'}</span><span style="display:flex;gap:8px"><a href="${remote.downloads?.web||remote.downloads?.apk||'#'}" style="background:#fff;color:#C8102E;padding:6px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px">Actualizar</a><button onclick="this.closest('div').remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:18px;padding:0 4px">✕</button></span>`;
+      document.body.appendChild(bar);
+    }
+  }catch(e){/* offline — silencioso */}
+}
+setTimeout(webCheckUpdate,3000);
+</script>
+</body>
+</html>

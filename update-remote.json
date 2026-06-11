@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "releaseDate": "2026-06-08",
+  "notes": "Versión inicial — Calculadoras laborales, AFP & Salud, Analizador de contratos con IA",
+  "downloads": {
+    "exe": "https://github.com/laborcl/laborcl-app/releases/download/v1.0.0/LaborCL-Portable-1.0.0.exe",
+    "apk": "https://github.com/laborcl/laborcl-app/releases/download/v1.0.0/LaborCL-1.0.0.apk",
+    "web": "https://laborcl.github.io"
+  }
+}
