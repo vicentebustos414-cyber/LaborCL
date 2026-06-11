@@ -1,9 +1,9 @@
 services:
   - type: web
     name: laborcl
-    runtime: static
+    env: static
     staticPublishPath: .
-    buildCommand: ""
+    buildCommand: echo done
     routes:
       - type: rewrite
         source: /*
