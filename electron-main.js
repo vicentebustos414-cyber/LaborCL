@@ -22,7 +22,7 @@ function createWindow() {
     show: false,
   });
 
-  mainWindow.loadFile('dist-react/index-react.html');
+  mainWindow.loadFile('index.html');
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();

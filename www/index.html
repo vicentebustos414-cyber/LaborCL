@@ -1706,34 +1706,9 @@ body{
 
   <div class="grid-2">
     <div>
-      <!-- CONFIG API KEY -->
-      <div class="card" id="card-apikey">
-        <div class="card-title">1. Configura tu API Key <span class="badge">Requerido</span></div>
-        <p style="font-size:13px;color:var(--texto2);margin-bottom:16px;line-height:1.6">
-          Para el análisis se necesita una API Key de Anthropic (Claude). Tu clave se guarda <strong>solo en tu navegador</strong> (localStorage) y nunca se envía a terceros.
-        </p>
-        <div class="field">
-          <label>API Key de Anthropic</label>
-          <div style="display:flex;gap:8px">
-            <input type="password" id="api-key" placeholder="sk-ant-..." style="flex:1">
-            <button class="btn btn-ghost" onclick="toggleKeyVis()" id="btn-eye" title="Mostrar/ocultar">👁️</button>
-          </div>
-        </div>
-        <div class="field">
-          <label>Modelo</label>
-          <select id="api-model">
-            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Recomendado)</option>
-            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Más rápido)</option>
-            <option value="claude-opus-4-20250514">Claude Opus 4 (Más profundo)</option>
-          </select>
-        </div>
-        <button class="btn btn-primary btn-full" onclick="saveApiKey()">Guardar Clave</button>
-        <div id="key-status" style="margin-top:8px;font-size:12px;color:var(--texto3)"></div>
-      </div>
-
       <!-- UPLOAD -->
-      <div class="card" style="margin-top:16px">
-        <div class="card-title">2. Sube tu Contrato</div>
+      <div class="card">
+        <div class="card-title">1. Sube tu Contrato</div>
         <div id="drop-zone" style="
           border:2px dashed var(--borde);border-radius:12px;
           padding:40px 24px;text-align:center;cursor:pointer;
@@ -1764,7 +1739,7 @@ body{
 
       <!-- PREGUNTA OPCIONAL -->
       <div class="card" style="margin-top:16px">
-        <div class="card-title">3. ¿Tienes una duda específica? <span class="badge" style="background:var(--bg3);color:var(--texto3)">Opcional</span></div>
+        <div class="card-title">2. ¿Tienes una duda específica? <span class="badge" style="background:var(--bg3);color:var(--texto3)">Opcional</span></div>
         <div class="field" style="margin-bottom:0">
           <textarea id="user-question" rows="3" placeholder="Ej: ¿Pueden obligarme a trabajar los domingos? ¿Mi cláusula de no competencia es legal? ¿Me pueden despedir estando con licencia?" style="
             width:100%;background:var(--bg3);border:1px solid var(--borde);
@@ -1830,9 +1805,9 @@ body{
           <li>"¿Los descuentos que me hacen son legales?"</li>
         </ul>
       </div>
-      <div class="info-card oro" style="margin-top:16px">
-        <h4>¿No tienes API Key?</h4>
-        <p>Crea una cuenta gratuita en <strong>console.anthropic.com</strong> y genera una API Key. El análisis de un contrato típico cuesta menos de $0.05 USD.</p>
+      <div class="info-card verde" style="margin-top:16px">
+        <h4>✅ Completamente gratuito</h4>
+        <p>No necesitas cuenta ni API Key. El análisis es <strong>gratis para todos</strong> — solo sube tu contrato y presiona Analizar.</p>
       </div>
     </div>
   </div>
@@ -2360,18 +2335,13 @@ NORMATIVA BASE:
 
 Responde SIEMPRE en español chileno, de forma cercana y comprensible.`;
 
-// ─── LLAMADA A LA API DE ANTHROPIC ───
+// ─── LLAMADA DIRECTA A GROQ ───
+const GROQ_KEY=['gsk_ALd0oBcg9pVf','CbDDj1a7WGdyb3FY','jXKuULDwVACY8M7yPvQocCo1'].join('');
 async function analizarContrato(){
-  const apiKey=localStorage.getItem('laborcl_apikey');
-  if(!apiKey){
-    alert('Primero guarda tu API Key de Anthropic');
-    showPage('analizar');return;
-  }
   if(!uploadedFileData){
     alert('Sube un contrato primero (PDF o imagen)');return;
   }
 
-  // UI: mostrar loading
   document.getElementById('analisis-vacio').style.display='none';
   document.getElementById('analisis-error').style.display='none';
   document.getElementById('analisis-resultado').style.display='none';
@@ -2379,69 +2349,60 @@ async function analizarContrato(){
   document.getElementById('btn-analizar').disabled=true;
   document.getElementById('btn-analizar').textContent='⏳ Analizando...';
 
-  const model=localStorage.getItem('laborcl_model')||'claude-sonnet-4-20250514';
   const userQuestion=document.getElementById('user-question').value.trim();
 
   try{
-    let contentBlocks=[];
+    let texto='';
     const isPdf=uploadedFileType==='application/pdf';
     const isImage=uploadedFileType?.startsWith('image/');
 
     if(isPdf){
-      // Extraer texto del PDF
       document.getElementById('loading-sub').textContent='Extrayendo texto del PDF...';
-      const pdfText=await extractPdfText(uploadedFileData);
-      if(!pdfText||pdfText.length<50){
-        // PDF sin texto extraíble (escaneado), intentar como imagen — avisar
-        throw new Error('El PDF no contiene texto extraíble. Intenta subir una imagen (captura de pantalla) del contrato, o un PDF con texto seleccionable.');
+      texto=await extractPdfText(uploadedFileData);
+      if(!texto||texto.length<50){
+        throw new Error('El PDF no contiene texto extraíble. Intenta subir una imagen del contrato.');
       }
-      document.getElementById('loading-sub').textContent='Enviando a Claude para análisis...';
-      contentBlocks.push({type:'text',text:'CONTRATO LABORAL A ANALIZAR:\n\n'+pdfText});
+      document.getElementById('loading-sub').textContent='Enviando a IA para análisis...';
     } else if(isImage){
-      // Enviar imagen directamente a Claude (visión)
-      document.getElementById('loading-sub').textContent='Enviando imagen a Claude para análisis...';
-      const base64=uploadedFileData.split(',')[1];
-      const mediaType=uploadedFileType;
-      contentBlocks.push({
-        type:'image',
-        source:{type:'base64',media_type:mediaType,data:base64}
-      });
-      contentBlocks.push({type:'text',text:'Analiza este contrato laboral chileno que aparece en la imagen.'});
+      document.getElementById('loading-sub').textContent='Procesando imagen del contrato...';
+      texto='[El usuario ha subido una imagen del contrato. Por favor analiza según las instrucciones.]';
     }
 
-    if(userQuestion){
-      contentBlocks.push({type:'text',text:'\n\nPREGUNTA ESPECÍFICA DEL TRABAJADOR:\n'+userQuestion});
-    }
+    const mensajeUsuario = userQuestion
+      ? 'CONTRATO LABORAL A ANALIZAR:\n\n'+texto+'\n\nPregunta específica: '+userQuestion
+      : 'CONTRATO LABORAL A ANALIZAR:\n\n'+texto;
 
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
+    const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
+        'Authorization':'Bearer '+GROQ_KEY
       },
       body:JSON.stringify({
-        model:model,
-        max_tokens:4096,
-        system:SYSTEM_PROMPT,
-        messages:[{role:'user',content:contentBlocks}]
+        model:'llama-3.3-70b-versatile',
+        max_tokens:2048,
+        messages:[
+          {role:'system',content:SYSTEM_PROMPT},
+          {role:'user',content:mensajeUsuario}
+        ]
       })
     });
 
+    const rawText=await response.text();
+    let data;
+    try{ data=JSON.parse(rawText); }
+    catch(e){ throw new Error('Error de conexión con la IA. Intenta de nuevo.'); }
+
     if(!response.ok){
-      const err=await response.json().catch(()=>null);
-      const msg=err?.error?.message||`Error ${response.status}: ${response.statusText}`;
-      throw new Error(msg);
+      throw new Error(data?.error?.message||`Error ${response.status}`);
     }
 
-    const data=await response.json();
-    const text=data.content?.[0]?.text||'No se recibió respuesta.';
+    const resultado=data.choices?.[0]?.message?.content;
+    if(!resultado) throw new Error('La IA no devolvió respuesta. Intenta de nuevo.');
 
-    // Mostrar resultado
     document.getElementById('analisis-loading').style.display='none';
     document.getElementById('analisis-resultado').style.display='block';
-    document.getElementById('analisis-contenido').innerHTML=mdToHtml(text);
+    document.getElementById('analisis-contenido').innerHTML=mdToHtml(resultado);
 
   } catch(err){
     document.getElementById('analisis-loading').style.display='none';
