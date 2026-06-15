@@ -15,13 +15,16 @@ export function PageFiniquito() {
     const sueldo = parseFloat(f.sueldo) || 0
     const uf = parseFloat(f.uf) || 37800
     if (!sueldo || !f.ingreso || !f.termino) return
+    if (f.termino < f.ingreso) return
     const r = diffFechas(f.ingreso, f.termino)
     const tope90uf = 90 * uf
     const baseInd = Math.min(sueldo, tope90uf)
     const anosIndem = Math.min(11, r.years + (r.months >= 6 ? 1 : 0))
     let indem = 0, avisoMonto = 0
     const vacMonto = (parseFloat(f.vacP) || 0) * (sueldo / 30) * 1.25
-    const diasMes = new Date(f.termino).getDate()
+    // Parse directo evita bug de timezone: new Date("2024-01-15") crea fecha UTC
+    // que en huso horario Chile puede retornar el día anterior con .getDate()
+    const diasMes = parseInt(f.termino.split('-')[2], 10)
     const propMes = (sueldo / 30) * diasMes
     if (f.causal === '161n1' || f.causal === '161n2') {
       indem = baseInd * anosIndem
