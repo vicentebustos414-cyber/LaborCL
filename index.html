@@ -2335,8 +2335,65 @@ NORMATIVA BASE:
 
 Responde SIEMPRE en español chileno, de forma cercana y comprensible.`;
 
-// ─── LLAMADA DIRECTA A GROQ ───
-const GROQ_KEY=['gsk_ALd0oBcg9pVf','CbDDj1a7WGdyb3FY','jXKuULDwVACY8M7yPvQocCo1'].join('');
+// ─── LLAMADA A GROQ ───
+// Web: proxied via /api/analizar (la key vive en el servidor).
+// Electron / APK: el usuario configura su propia Groq API key (guardada en localStorage).
+const _isFileOrCapacitor=location.protocol==='file:'||location.protocol==='capacitor:';
+
+function _getLocalKey(){return localStorage.getItem('laborcl_groq_key')||'';}
+
+function _promptSetupKey(){
+  const existing=_getLocalKey();
+  const k=window.prompt(
+    'LaborCL — Configuración inicial\n\n'+
+    'Para analizar contratos en la app de escritorio necesitas una API key de Groq (gratuita).\n'+
+    'Obtén tu key en: https://console.groq.com/keys\n\n'+
+    (existing?'Key actual guardada. Escribe una nueva para reemplazarla o cancela para mantenerla.':
+    'Pega tu Groq API key aquí:')
+  );
+  if(k&&k.trim().startsWith('gsk_')){
+    localStorage.setItem('laborcl_groq_key',k.trim());
+    return k.trim();
+  }
+  return existing;
+}
+
+async function _groqAnalizar(mensajeUsuario){
+  if(!_isFileOrCapacitor){
+    // Web: proxy backend — la key nunca sale del servidor
+    const r=await fetch('/api/analizar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({texto:mensajeUsuario})
+    });
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||`Error ${r.status}`);
+    return d.resultado;
+  }
+  // Electron / APK: key local del usuario (nunca en el código fuente)
+  let key=_getLocalKey();
+  if(!key||!key.startsWith('gsk_')){
+    key=_promptSetupKey();
+    if(!key) throw new Error('Se requiere una Groq API key. Configúrala desde el menú Ayuda → Configurar API Key.');
+  }
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:2048,
+      messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:mensajeUsuario}]})
+  });
+  const d=await r.json();
+  if(!r.ok){
+    if(r.status===401){localStorage.removeItem('laborcl_groq_key');}
+    throw new Error(d?.error?.message||`Error ${r.status}`);
+  }
+  return d.choices?.[0]?.message?.content||null;
+}
+
+function _escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 async function analizarContrato(){
   if(!uploadedFileData){
     alert('Sube un contrato primero (PDF o imagen)');return;
@@ -2372,32 +2429,7 @@ async function analizarContrato(){
       ? 'CONTRATO LABORAL A ANALIZAR:\n\n'+texto+'\n\nPregunta específica: '+userQuestion
       : 'CONTRATO LABORAL A ANALIZAR:\n\n'+texto;
 
-    const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer '+GROQ_KEY
-      },
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        max_tokens:2048,
-        messages:[
-          {role:'system',content:SYSTEM_PROMPT},
-          {role:'user',content:mensajeUsuario}
-        ]
-      })
-    });
-
-    const rawText=await response.text();
-    let data;
-    try{ data=JSON.parse(rawText); }
-    catch(e){ throw new Error('Error de conexión con la IA. Intenta de nuevo.'); }
-
-    if(!response.ok){
-      throw new Error(data?.error?.message||`Error ${response.status}`);
-    }
-
-    const resultado=data.choices?.[0]?.message?.content;
+    const resultado=await _groqAnalizar(mensajeUsuario);
     if(!resultado) throw new Error('La IA no devolvió respuesta. Intenta de nuevo.');
 
     document.getElementById('analisis-loading').style.display='none';
@@ -2407,7 +2439,7 @@ async function analizarContrato(){
   } catch(err){
     document.getElementById('analisis-loading').style.display='none';
     document.getElementById('analisis-error').style.display='block';
-    document.getElementById('error-msg').innerHTML='<span>❌</span><span><strong>Error:</strong> '+err.message+'</span>';
+    document.getElementById('error-msg').innerHTML='<span>❌</span><span><strong>Error:</strong> '+_escapeHtml(err.message)+'</span>';
   } finally {
     document.getElementById('btn-analizar').disabled=false;
     document.getElementById('btn-analizar').textContent='🤖 Analizar Contrato';
@@ -2416,18 +2448,36 @@ async function analizarContrato(){
 
 // ═══ AUTO-UPDATE WEB/APK ═══
 const APP_VERSION='1.0.0';
-const UPDATE_REMOTE_URL='https://raw.githubusercontent.com/laborcl/laborcl-app/main/update-remote.json';
+const UPDATE_REMOTE_URL='https://raw.githubusercontent.com/vicentebustos414-cyber/LaborCL/master/update-remote.json';
 
 async function webCheckUpdate(){
   try{
     const resp=await fetch(UPDATE_REMOTE_URL,{cache:'no-store'});
     if(!resp.ok) return;
     const remote=await resp.json();
+    // Validar estructura mínima para evitar XSS por JSON malicioso
+    if(typeof remote.version!=='string'||!/^\d+\.\d+\.\d+$/.test(remote.version)) return;
     const isNewer=(a,b)=>{const x=a.split('.').map(Number),y=b.split('.').map(Number);for(let i=0;i<3;i++){if((y[i]||0)>(x[i]||0))return true;if((y[i]||0)<(x[i]||0))return false;}return false;};
     if(isNewer(APP_VERSION,remote.version)){
+      // Construir el banner via DOM (sin innerHTML para evitar XSS)
+      const dlUrl=remote.downloads?.web||remote.downloads?.apk||null;
+      if(dlUrl&&!/^https?:\/\//.test(dlUrl)) return; // solo URLs absolutas HTTPS/HTTP
       const bar=document.createElement('div');
       bar.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#C8102E;color:#fff;padding:12px 20px;font-size:14px;display:flex;align-items:center;justify-content:space-between;font-family:Outfit,sans-serif;box-shadow:0 -4px 20px rgba(0,0,0,.5)';
-      bar.innerHTML=`<span>🔄 <strong>LaborCL v${remote.version}</strong> disponible — ${remote.notes||'Nueva versión'}</span><span style="display:flex;gap:8px"><a href="${remote.downloads?.web||remote.downloads?.apk||'#'}" style="background:#fff;color:#C8102E;padding:6px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px">Actualizar</a><button onclick="this.closest('div').remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:18px;padding:0 4px">✕</button></span>`;
+      const msg=document.createElement('span');
+      msg.textContent=`🔄 LaborCL v${remote.version} disponible — ${remote.notes||'Nueva versión'}`;
+      const acts=document.createElement('span');
+      acts.style.cssText='display:flex;gap:8px';
+      if(dlUrl){
+        const a=document.createElement('a');
+        a.href=dlUrl;a.rel='noopener noreferrer';
+        a.style.cssText='background:#fff;color:#C8102E;padding:6px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px';
+        a.textContent='Actualizar';acts.appendChild(a);
+      }
+      const close=document.createElement('button');
+      close.style.cssText='background:none;border:none;color:#fff;cursor:pointer;font-size:18px;padding:0 4px';
+      close.textContent='✕';close.addEventListener('click',()=>bar.remove());
+      acts.appendChild(close);bar.appendChild(msg);bar.appendChild(acts);
       document.body.appendChild(bar);
     }
   }catch(e){/* offline — silencioso */}
