@@ -15,6 +15,7 @@ export function PageIndemnizacion() {
     const sueldo = parseFloat(f.sueldo) || 0
     const uf = parseFloat(f.uf) || 37800
     if (!sueldo || !f.ingreso || !f.termino) return
+    if (f.termino < f.ingreso) return
     const r = diffFechas(f.ingreso, f.termino)
     const tope90uf = 90 * uf
     const tope = sueldo > tope90uf
