@@ -1,17 +1,41 @@
-const express = require('express')
+﻿const express = require('express')
 const path = require('path')
 const app = express()
 
-app.use(express.json({ limit: '2mb' }))
-app.use(express.static(path.join(__dirname)))
+app.use(express.json({ limit: '500kb' }))
 
-// Rate limiting simple por IP
+// Servir solo index.html y assets declarados — no exponer server.js ni package.json
+app.use(express.static(path.join(__dirname), {
+  index: 'index.html',
+  dotfiles: 'deny',
+  setHeaders: (res, filePath) => {
+    const blocked = ['server.js', 'update-checker.js', 'electron-main.js',
+                     'package.json', 'package-lock.json', '.env', 'render.yaml']
+    const base = path.basename(filePath)
+    if (blocked.includes(base)) {
+      res.status(403).end()
+    }
+  }
+}))
+
+// Rate limiting por IP — usa x-forwarded-for solo si el servidor confía en el proxy (Render/Cloudflare)
+const TRUST_PROXY = process.env.TRUST_PROXY === '1'
 const hits = {}
+setInterval(() => {
+  const cutoff = Date.now() - 60 * 60 * 1000
+  for (const ip of Object.keys(hits)) {
+    hits[ip] = hits[ip].filter(t => t > cutoff)
+    if (!hits[ip].length) delete hits[ip]
+  }
+}, 5 * 60 * 1000)
+
 function rateLimit(req, res, next) {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const ip = TRUST_PROXY
+    ? (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress
+    : req.socket.remoteAddress
   const now = Date.now()
   if (!hits[ip]) hits[ip] = []
-  hits[ip] = hits[ip].filter(t => now - t < 60 * 60 * 1000) // última hora
+  hits[ip] = hits[ip].filter(t => now - t < 60 * 60 * 1000)
   if (hits[ip].length >= 10) {
     return res.status(429).json({ error: 'Límite de 10 análisis por hora alcanzado. Inténtalo más tarde.' })
   }
@@ -23,7 +47,16 @@ app.post('/api/analizar', rateLimit, async (req, res) => {
   const { texto, pregunta } = req.body
   const key = process.env.GROQ_API_KEY
   if (!key) return res.status(500).json({ error: 'Servicio no configurado.' })
-  if (!texto && !req.body.imagen) return res.status(400).json({ error: 'Falta el contenido del contrato.' })
+
+  if (typeof texto !== 'string' || !texto.trim()) {
+    return res.status(400).json({ error: 'Falta el contenido del contrato.' })
+  }
+  if (texto.length > 40000) {
+    return res.status(400).json({ error: 'El contrato supera el tamaño máximo permitido (40 000 caracteres).' })
+  }
+  if (pregunta !== undefined && (typeof pregunta !== 'string' || pregunta.length > 500)) {
+    return res.status(400).json({ error: 'La pregunta supera los 500 caracteres permitidos.' })
+  }
 
   const mensajeUsuario = pregunta
     ? `${texto}\n\nPregunta específica: ${pregunta}`
