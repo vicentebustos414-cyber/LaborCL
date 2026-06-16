@@ -24,7 +24,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: '/',
+  base: './',
   build: {
     outDir: 'dist-react',
     emptyOutDir: true,
