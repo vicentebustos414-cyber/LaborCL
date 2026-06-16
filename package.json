@@ -54,7 +54,7 @@
       "output": "electron-dist"
     },
     "files": [
-      "index.html",
+      "dist-react/**",
       "electron-main.js",
       "update-checker.js",
       "version.json",
