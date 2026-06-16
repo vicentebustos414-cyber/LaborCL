@@ -4,19 +4,19 @@ const app = express()
 
 app.use(express.json({ limit: '500kb' }))
 
-// Servir solo index.html y assets declarados — no exponer server.js ni package.json
-app.use(express.static(path.join(__dirname), {
+// Servir React build desde dist-react/
+const DIST = path.join(__dirname, 'dist-react')
+app.use(express.static(DIST, {
   index: 'index.html',
   dotfiles: 'deny',
-  setHeaders: (res, filePath) => {
-    const blocked = ['server.js', 'update-checker.js', 'electron-main.js',
-                     'package.json', 'package-lock.json', '.env', 'render.yaml']
-    const base = path.basename(filePath)
-    if (blocked.includes(base)) {
-      res.status(403).end()
-    }
-  }
 }))
+
+// SPA fallback
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(DIST, 'index.html'))
+  }
+})
 
 // Rate limiting por IP — usa x-forwarded-for solo si el servidor confía en el proxy (Render/Cloudflare)
 const TRUST_PROXY = process.env.TRUST_PROXY === '1'

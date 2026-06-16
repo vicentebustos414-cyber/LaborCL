@@ -16,12 +16,19 @@ import { PageDerechos } from './pages/PageDerechos'
 import { PageCondiciones } from './pages/PageCondiciones'
 import { PageMateriales } from './pages/PageMateriales'
 import { PageAnalizar } from './pages/PageAnalizar'
+import { PageTutela } from './pages/PageTutela'
+import { PageKarin } from './pages/PageKarin'
+import { PageJornada } from './pages/PageJornada'
+import { PageMaternidad } from './pages/PageMaternidad'
+import { PageTeletrabajo } from './pages/PageTeletrabajo'
+import { PageOIRS } from './pages/PageOIRS'
 import { Menu, X } from 'lucide-react'
 
 export type PageId =
   | 'inicio' | 'anos' | 'vacaciones' | 'finiquito' | 'aviso' | 'indemnizacion'
   | 'afp-salud' | 'descuentos' | 'afc'
   | 'accidente' | 'contratos' | 'despidos' | 'derechos' | 'condiciones' | 'materiales'
+  | 'tutela' | 'karin' | 'jornada' | 'maternidad' | 'teletrabajo' | 'oirs'
   | 'analizar'
 
 const buildPages = (nav: (id: PageId) => void): Record<PageId, React.ReactNode> => ({
@@ -40,6 +47,12 @@ const buildPages = (nav: (id: PageId) => void): Record<PageId, React.ReactNode> 
   derechos: <PageDerechos />,
   condiciones: <PageCondiciones />,
   materiales: <PageMateriales />,
+  tutela: <PageTutela />,
+  karin: <PageKarin />,
+  jornada: <PageJornada />,
+  maternidad: <PageMaternidad />,
+  teletrabajo: <PageTeletrabajo />,
+  oirs: <PageOIRS />,
   analizar: <PageAnalizar />,
 })
 

@@ -2,8 +2,11 @@ import { PageId } from '../App'
 import {
   Home, Calendar, Umbrella, FileText, Bell, Scale,
   Shield, Calculator, Coins, AlertTriangle, BookOpen,
-  UserX, Users, Building, Wrench, Bot
+  UserX, Users, Building, Wrench, Bot,
+  Gavel, HeartHandshake, Clock, Baby, Laptop, MapPin,
+  Sun, Moon
 } from 'lucide-react'
+import { useTheme } from '../lib/theme'
 
 type NavItem = { id: PageId; label: string; icon: React.ReactNode }
 type NavGroup = { title: string; items: NavItem[] }
@@ -34,6 +37,17 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    title: 'Leyes Recientes',
+    items: [
+      { id: 'tutela',     label: 'Tutela Laboral',       icon: <Gavel size={16} /> },
+      { id: 'karin',      label: 'Ley Karin (Acoso)',    icon: <HeartHandshake size={16} /> },
+      { id: 'jornada',    label: 'Jornada 40 Horas',     icon: <Clock size={16} /> },
+      { id: 'maternidad', label: 'Maternidad/Paternidad',icon: <Baby size={16} /> },
+      { id: 'teletrabajo',label: 'Teletrabajo',          icon: <Laptop size={16} /> },
+      { id: 'oirs',       label: 'Dónde Reclamar',       icon: <MapPin size={16} /> },
+    ],
+  },
+  {
     title: 'Herramientas IA',
     items: [
       { id: 'analizar', label: 'Analizar Contrato', icon: <Bot size={16} /> },
@@ -47,6 +61,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ current, onNavigate }: SidebarProps) {
+  const { theme, toggle } = useTheme()
   return (
     <nav className="h-full min-h-screen flex flex-col bg-[#161616] border-r border-white/[0.07] overflow-y-auto">
       {/* Logo */}
@@ -96,6 +111,13 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
 
       {/* Footer */}
       <div className="px-5 py-4 border-t border-white/[0.07] text-[11px] text-[#6B6560] leading-relaxed">
+        <button
+          onClick={toggle}
+          className="flex items-center gap-2 mb-3 px-3 py-2 w-full rounded-lg text-xs text-[#A09A93] hover:text-[#F0EDE8] hover:bg-[#1F1F1F] transition-all"
+        >
+          {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+          {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+        </button>
         <p>Solo referencia informativa.</p>
         <p>No reemplaza asesoría legal.</p>
         <p className="mt-1 text-[#3a3a3a]">Código del Trabajo DFL N°1</p>

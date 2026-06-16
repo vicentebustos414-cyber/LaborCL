@@ -2,7 +2,7 @@ services:
   - type: web
     name: laborcl
     env: node
-    buildCommand: npm install --omit=dev
+    buildCommand: npm install && npm run build:react
     startCommand: node server.js
     envVars:
       - key: GROQ_API_KEY

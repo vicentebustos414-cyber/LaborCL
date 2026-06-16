@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { PageHeader } from '@/components/PageHeader'
 import { ResultBox } from '@/components/ResultBox'
+import { CalcHistory } from '@/components/CalcHistory'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { diffFechas, fmt } from '@/lib/utils'
+import { saveCalc } from '@/lib/history'
 
 export function PageIndemnizacion() {
   const [f, setF] = useState({ sueldo: '', uf: '37800', ingreso: '', termino: '', recargo: '1' })
   const [result, setResult] = useState<null | { total: number; anos: number; base: number; tope: boolean; recargoPct: number }>(null)
+  const [histKey, setHistKey] = useState(0)
 
   const calc = () => {
     const sueldo = parseFloat(f.sueldo) || 0
@@ -23,7 +26,18 @@ export function PageIndemnizacion() {
     const anos = Math.min(11, r.years + (r.months >= 6 ? 1 : 0))
     const recargo = parseFloat(f.recargo) || 1
     const total = base * anos * recargo
-    setResult({ total, anos, base, tope, recargoPct: recargo * 100 })
+    const res = { total, anos, base, tope, recargoPct: recargo * 100 }
+    setResult(res)
+    saveCalc({
+      tipo: 'Indemnización',
+      resumen: fmt(total),
+      detalle: {
+        'Años': res.anos + ' año(s)',
+        'Base': fmt(res.base) + '/mes',
+        'Recargo': res.recargoPct + '%',
+      },
+    })
+    setHistKey(k => k + 1)
   }
 
   const up = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
@@ -71,6 +85,7 @@ export function PageIndemnizacion() {
           <Button className="w-full" onClick={calc}>Calcular indemnización</Button>
           {result && (
             <ResultBox
+              shareTitle="Indemnización por Años de Servicio"
               value={fmt(result.total)}
               items={[
                 { label: 'Años considerados', value: result.anos + ' año(s)' },
@@ -81,6 +96,7 @@ export function PageIndemnizacion() {
               note={result.anos === 11 ? '⚠️ Se aplicó el tope de 11 años máximo (Art. 163 CT).' : undefined}
             />
           )}
+          <CalcHistory key={histKey} />
         </Card>
 
         <div className="space-y-5">

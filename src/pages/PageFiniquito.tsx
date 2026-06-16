@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { PageHeader } from '@/components/PageHeader'
 import { ResultBox } from '@/components/ResultBox'
+import { CalcHistory } from '@/components/CalcHistory'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { diffFechas, fmt } from '@/lib/utils'
+import { saveCalc } from '@/lib/history'
 
 export function PageFiniquito() {
   const [f, setF] = useState({ sueldo: '', uf: '37800', ingreso: '', termino: '', causal: '161n1', vacP: '0', aviso: 'no' })
   const [result, setResult] = useState<null | { total: number; indem: number; avisoMonto: number; vacMonto: number; propMes: number; anosIndem: number; baseInd: number }>(null)
+  const [histKey, setHistKey] = useState(0)
 
   const calc = () => {
     const sueldo = parseFloat(f.sueldo) || 0
@@ -22,8 +25,6 @@ export function PageFiniquito() {
     const anosIndem = Math.min(11, r.years + (r.months >= 6 ? 1 : 0))
     let indem = 0, avisoMonto = 0
     const vacMonto = (parseFloat(f.vacP) || 0) * (sueldo / 30) * 1.25
-    // Parse directo evita bug de timezone: new Date("2024-01-15") crea fecha UTC
-    // que en huso horario Chile puede retornar el día anterior con .getDate()
     const diasMes = parseInt(f.termino.split('-')[2], 10)
     const propMes = (sueldo / 30) * diasMes
     if (f.causal === '161n1' || f.causal === '161n2') {
@@ -31,7 +32,18 @@ export function PageFiniquito() {
       if (f.aviso === 'si') avisoMonto = sueldo
     }
     const total = indem + avisoMonto + vacMonto + propMes
-    setResult({ total, indem, avisoMonto, vacMonto, propMes, anosIndem, baseInd })
+    const res = { total, indem, avisoMonto, vacMonto, propMes, anosIndem, baseInd }
+    setResult(res)
+    saveCalc({
+      tipo: 'Finiquito',
+      resumen: fmt(total),
+      detalle: {
+        'Indem.': fmt(indem),
+        'Vacaciones': fmt(vacMonto),
+        'Proporcional': fmt(propMes),
+      },
+    })
+    setHistKey(k => k + 1)
   }
 
   const up = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
@@ -92,6 +104,7 @@ export function PageFiniquito() {
           <Button className="w-full" onClick={calc}>Calcular finiquito</Button>
           {result && (
             <ResultBox
+              shareTitle="Finiquito"
               value={fmt(result.total)}
               items={[
                 { label: 'Indem. años servicio', value: fmt(result.indem) },
@@ -102,6 +115,7 @@ export function PageFiniquito() {
               note={`${result.anosIndem} año(s) considerados. Base de cálculo: ${fmt(result.baseInd)}/mes`}
             />
           )}
+          <CalcHistory key={histKey} />
         </Card>
 
         <div className="space-y-5">

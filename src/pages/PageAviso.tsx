@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { PageHeader } from '@/components/PageHeader'
 import { ResultBox } from '@/components/ResultBox'
+import { CalcHistory } from '@/components/CalcHistory'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { fmt } from '@/lib/utils'
+import { saveCalc } from '@/lib/history'
 
 export function PageAviso() {
   const [sueldo, setSueldo] = useState('')
   const [tipo, setTipo] = useState('no')
   const [diasDados, setDiasDados] = useState('0')
   const [result, setResult] = useState<null | { monto: number; detalle: string }>(null)
+  const [histKey, setHistKey] = useState(0)
 
   const calc = () => {
     const s = parseFloat(sueldo) || 0
@@ -22,6 +25,8 @@ export function PageAviso() {
     else if (tipo === 'si') { monto = 0; detalle = '✅ Se dio aviso previo de 30+ días. No hay pago adicional.' }
     else { const faltantes = 30 - (parseInt(diasDados) || 0); monto = diario * faltantes; detalle = `Días faltantes: ${faltantes} × ${fmt(diario)}/día` }
     setResult({ monto, detalle })
+    saveCalc({ tipo: 'Aviso Previo', resumen: monto > 0 ? fmt(monto) : '$0', detalle: { 'Detalle': detalle } })
+    setHistKey(k => k + 1)
   }
 
   return (
@@ -54,7 +59,8 @@ export function PageAviso() {
             </div>
           )}
           <Button className="w-full" onClick={calc}>Calcular aviso previo</Button>
-          {result && <ResultBox value={result.monto > 0 ? fmt(result.monto) : '$0'} sub={result.detalle} />}
+          {result && <ResultBox shareTitle="Aviso Previo" value={result.monto > 0 ? fmt(result.monto) : '$0'} sub={result.detalle} />}
+          <CalcHistory key={histKey} />
         </Card>
 
         <div className="space-y-5">

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { PageHeader } from '@/components/PageHeader'
 import { ResultBox } from '@/components/ResultBox'
+import { CalcHistory } from '@/components/CalcHistory'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { diffFechas, today } from '@/lib/utils'
+import { saveCalc } from '@/lib/history'
 
 export function PageVacaciones() {
   const [ingreso, setIngreso] = useState('')
@@ -12,6 +14,7 @@ export function PageVacaciones() {
   const [previos, setPrevios] = useState('0')
   const [tomadas, setTomadas] = useState('0')
   const [result, setResult] = useState<null | { pendientes: number; diasAnuales: number; progresivo: number; proporcional: number }>(null)
+  const [histKey, setHistKey] = useState(0)
 
   const calc = () => {
     if (!ingreso) return
@@ -25,7 +28,14 @@ export function PageVacaciones() {
     const diasAnuales = 15 + progresivo
     const proporcional = r.years === 0 ? diasProp : diasAnuales
     const pendientes = Math.max(0, proporcional - (parseInt(tomadas) || 0))
-    setResult({ pendientes, diasAnuales, progresivo, proporcional })
+    const res = { pendientes, diasAnuales, progresivo, proporcional }
+    setResult(res)
+    saveCalc({
+      tipo: 'Vacaciones',
+      resumen: `${pendientes} días hábiles`,
+      detalle: { 'Total anual': `${diasAnuales} días`, 'Progresivo': `+${progresivo} días` },
+    })
+    setHistKey(k => k + 1)
   }
 
   return (
@@ -60,6 +70,7 @@ export function PageVacaciones() {
           <Button className="w-full" onClick={calc}>Calcular vacaciones</Button>
           {result && (
             <ResultBox
+              shareTitle="Vacaciones Legales"
               value={`${result.pendientes} días hábiles`}
               items={[
                 { label: 'Base legal', value: '15 días' },
@@ -69,6 +80,7 @@ export function PageVacaciones() {
               ]}
             />
           )}
+          <CalcHistory key={histKey} />
         </Card>
 
         <div className="space-y-5">

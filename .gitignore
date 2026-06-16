@@ -1,5 +1,4 @@
 node_modules/
-dist-react/
 dist/
 electron-dist/
 release/

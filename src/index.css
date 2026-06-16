@@ -81,6 +81,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Scrollbar */
@@ -88,3 +89,11 @@ body {
 ::-webkit-scrollbar-track { background: #161616; }
 ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #C8102E; }
+
+/* Light mode base — class overrides injected by ThemeProvider via <style id="lm"> */
+html.light body {
+  background-color: #F2F0EB;
+  color: #1A1714;
+}
+html.light ::-webkit-scrollbar-track { background: #E8E5DF; }
+html.light ::-webkit-scrollbar-thumb { background: #C0BBB5; }

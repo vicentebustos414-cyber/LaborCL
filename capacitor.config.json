@@ -1,7 +1,7 @@
 {
   "appId": "cl.laborcl.app",
   "appName": "LaborCL",
-  "webDir": "www",
+  "webDir": "dist-react",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https"
