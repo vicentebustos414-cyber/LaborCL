@@ -92,8 +92,18 @@ export function PageAnalizar({ onNavigate }: Props) {
     return text
   }
 
-  const analizar = async () => {
-    if (!file) { setErrorMsg('Sube un contrato primero.'); setEstado('error'); return }
+  const enviarConsulta = async (soloConsulta: boolean) => {
+    if (soloConsulta && !question.trim()) {
+      setErrorMsg('Escribe tu pregunta primero.')
+      setEstado('error')
+      return
+    }
+    if (!soloConsulta && !file) {
+      setErrorMsg('Sube un contrato primero.')
+      setEstado('error')
+      return
+    }
+
     setEstado('loading')
     setResultado('')
     setErrorMsg('')
@@ -101,19 +111,27 @@ export function PageAnalizar({ onNavigate }: Props) {
 
     try {
       let texto = ''
-      if (file.type === 'application/pdf') {
+
+      if (soloConsulta) {
+        // Consulta libre sin contrato
+        setLoadingSub('Consultando con IA...')
+        texto = `El trabajador tiene la siguiente consulta sobre derecho laboral chileno:\n\n${question}`
+      } else if (file!.type === 'application/pdf') {
         setLoadingSub('Extrayendo texto del PDF...')
-        texto = await extraerTextoPDF(file)
+        texto = await extraerTextoPDF(file!)
       } else {
         setLoadingSub('Procesando imagen...')
-        texto = `[Imagen de contrato adjunta: ${file.name}]`
+        texto = `[Imagen de contrato adjunta: ${file!.name}]`
       }
 
-      setLoadingSub('Analizando con IA...')
+      setLoadingSub(soloConsulta ? 'Consultando con IA...' : 'Analizando con IA...')
       const resp = await fetch('/api/analizar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto, pregunta: question || undefined }),
+        body: JSON.stringify({
+          texto,
+          pregunta: soloConsulta ? undefined : (question || undefined),
+        }),
       })
 
       const data = await resp.json()
@@ -122,16 +140,18 @@ export function PageAnalizar({ onNavigate }: Props) {
       setResultado(data.resultado)
       setEstado('done')
 
-      // Guardar automáticamente en historial
-      guardarAnalisis(file.name, question, data.resultado)
+      const nombre = soloConsulta ? `Consulta: ${question.substring(0, 50)}` : file!.name
+      guardarAnalisis(nombre, soloConsulta ? '' : question, data.resultado)
       setGuardado(true)
     } catch (e: any) {
-      setErrorMsg(e.message || 'Error al analizar el contrato.')
+      setErrorMsg(e.message || 'Error al consultar.')
       setEstado('error')
     } finally {
       setLoadingSub('')
     }
   }
+
+  const analizar = () => enviarConsulta(false)
 
   return (
     <>
@@ -200,11 +220,29 @@ export function PageAnalizar({ onNavigate }: Props) {
               </div>
               <textarea
                 rows={4}
-                placeholder="Ej: ¿Pueden obligarme a trabajar los domingos? ¿Mi cláusula de no competencia es legal?"
+                placeholder="Ej: ¿Pueden obligarme a trabajar los domingos? ¿Mi cláusula de no competencia es legal? ¿Me pueden despedir estando con licencia?"
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) enviarConsulta(!file) }}
                 className="w-full bg-[#1F1F1F] border border-white/[0.07] rounded-lg px-4 py-3 text-sm font-sans text-[#F0EDE8] outline-none transition-colors focus:border-[#C8102E] resize-y placeholder:text-[#6B6560]"
               />
+              {/* Botón consulta libre (sin contrato) */}
+              {!file && (
+                <Button
+                  className="w-full bg-[#2A2A2A] hover:bg-[#333] border border-white/[0.07] text-[#F0EDE8] text-sm"
+                  onClick={() => enviarConsulta(true)}
+                  disabled={estado === 'loading' || !question.trim()}
+                >
+                  {estado === 'loading'
+                    ? <><Loader2 size={15} className="animate-spin" /> Consultando...</>
+                    : <><Bot size={15} /> Consultar sin contrato</>}
+                </Button>
+              )}
+              {!file && (
+                <p className="text-xs text-[#6B6560] text-center">
+                  O sube un contrato arriba para analizar junto a tu pregunta · <kbd className="opacity-60">Ctrl+Enter</kbd> para enviar
+                </p>
+              )}
             </Card>
 
             <Button className="w-full py-4 text-base" onClick={analizar} disabled={estado === 'loading'}>
