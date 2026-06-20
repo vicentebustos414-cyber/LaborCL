@@ -2,20 +2,14 @@ import { useState, useRef } from 'react'
 import { PageHeader } from '@/components/PageHeader'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Upload, Eye, EyeOff, X, Bot, Scale } from 'lucide-react'
+import { Upload, X, Bot, Scale, Loader2 } from 'lucide-react'
 
 type Estado = 'idle' | 'loading' | 'done' | 'error'
 
 declare global { interface Window { pdfjsLib: any } }
 
 export function PageAnalizar() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('laborcl_apikey') || '')
-  const [model, setModel] = useState('claude-sonnet-4-20250514')
-  const [showKey, setShowKey] = useState(false)
-  const [keySaved, setKeySaved] = useState(!!localStorage.getItem('laborcl_apikey'))
   const [file, setFile] = useState<File | null>(null)
   const [question, setQuestion] = useState('')
   const [estado, setEstado] = useState<Estado>('idle')
@@ -23,11 +17,6 @@ export function PageAnalizar() {
   const [resultado, setResultado] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
-
-  const saveKey = () => {
-    localStorage.setItem('laborcl_apikey', apiKey)
-    setKeySaved(true)
-  }
 
   const clearFile = () => setFile(null)
 
@@ -48,64 +37,58 @@ export function PageAnalizar() {
       .replace(/\n\n/g, '</p><p class="mb-4 text-[#A09A93] text-sm leading-relaxed">')
   }
 
+  const extraerTextoPDF = async (file: File): Promise<string> => {
+    const arr = await file.arrayBuffer()
+    const pdfjsLib = (window as any).pdfjsLib
+    if (!pdfjsLib) throw new Error('pdf.js no disponible')
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+    const pdf = await pdfjsLib.getDocument({ data: arr }).promise
+    let text = ''
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i)
+      const tc = await page.getTextContent()
+      text += tc.items.map((it: any) => it.str).join(' ') + '\n'
+    }
+    return text
+  }
+
   const analizar = async () => {
-    const key = localStorage.getItem('laborcl_apikey') || apiKey
-    if (!key) { setErrorMsg('Ingresa y guarda tu API Key primero.'); setEstado('error'); return }
     if (!file) { setErrorMsg('Sube un contrato primero.'); setEstado('error'); return }
     setEstado('loading')
     setResultado('')
     setErrorMsg('')
+
     try {
-      let content: any
+      let texto = ''
+
       if (file.type === 'application/pdf') {
         setLoadingSub('Extrayendo texto del PDF...')
-        const arr = await file.arrayBuffer()
-        const pdfjsLib = (window as any).pdfjsLib
-        if (!pdfjsLib) throw new Error('pdf.js no disponible')
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
-        const pdf = await pdfjsLib.getDocument({ data: arr }).promise
-        let text = ''
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i)
-          const tc = await page.getTextContent()
-          text += tc.items.map((it: any) => it.str).join(' ') + '\n'
-        }
-        content = [{ type: 'text', text: `Contrato laboral:\n\n${text.substring(0, 12000)}` }]
+        texto = await extraerTextoPDF(file)
       } else {
-        setLoadingSub('Procesando imagen del contrato...')
-        const b64 = await new Promise<string>((res, rej) => {
-          const r = new FileReader()
-          r.onload = () => res((r.result as string).split(',')[1])
-          r.onerror = rej
-          r.readAsDataURL(file)
-        })
-        const mt = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
-        content = [{ type: 'image', source: { type: 'base64', media_type: mt, data: b64 } }]
+        // Imagen: convertir a base64 y enviar como texto placeholder
+        setLoadingSub('Procesando imagen...')
+        texto = `[Imagen de contrato adjunta: ${file.name}]`
       }
-      if (question) content.push({ type: 'text', text: `\n\nPregunta específica del trabajador: ${question}` })
+
       setLoadingSub('Analizando con IA...')
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+
+      const resp = await fetch('/api/analizar', {
         method: 'POST',
-        headers: {
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 2048,
-          system: `Eres un experto en Derecho Laboral Chileno. Analiza el contrato de trabajo proporcionado y explícalo en lenguaje simple para trabajadores chilenos. Para cada cláusula importante: explica qué significa en términos cotidianos, indica si es legal según el Código del Trabajo (DFL N°1), señala el artículo relevante si aplica, y advierte si hay algo sospechoso o potencialmente ilegal. Responde en español, con un tono cercano y educativo. Usa encabezados para organizar tu análisis. Si hay una pregunta específica del trabajador, respóndela al inicio con énfasis.`,
-          messages: [{ role: 'user', content }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto, pregunta: question || undefined }),
       })
-      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error?.message || `Error ${resp.status}`) }
+
       const data = await resp.json()
-      setResultado(data.content[0].text)
+      if (!resp.ok) throw new Error(data.error || `Error ${resp.status}`)
+
+      setResultado(data.resultado)
       setEstado('done')
     } catch (e: any) {
       setErrorMsg(e.message || 'Error al analizar el contrato.')
       setEstado('error')
+    } finally {
+      setLoadingSub('')
     }
   }
 
@@ -115,43 +98,24 @@ export function PageAnalizar() {
         tag="Herramienta IA"
         title="Analizar tu"
         titleEm="Contrato"
-        desc="Sube tu contrato laboral y la IA te lo explicará en lenguaje simple con referencias al Código del Trabajo."
+        desc="Sube tu contrato laboral y la IA te lo explicará en lenguaje simple, cláusula por cláusula, referenciando el Código del Trabajo chileno."
       />
 
       <div className="flex gap-3 p-5 rounded-xl bg-[#C9922A]/8 border border-[#C9922A]/20 text-[#C9922A] text-sm leading-relaxed mb-6">
         <span className="flex-shrink-0">⚠️</span>
-        <p><strong>Privacidad:</strong> Tu contrato se envía directamente a la API de IA. No almacenamos ningún archivo. El análisis es solo de referencia y no reemplaza asesoría legal profesional.</p>
+        <p>
+          <strong>Privacidad:</strong> Tu contrato se envía directamente a la API de IA para el análisis.
+          No almacenamos ningún archivo ni dato personal. El análisis es solo de referencia y{' '}
+          <strong>no reemplaza asesoría legal profesional</strong>.
+        </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Left */}
         <div className="space-y-5">
-          {/* API Key */}
-          <Card className="p-7 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="text-sm font-semibold font-serif text-[#F0EDE8]">1. API Key</div>
-              <Badge variant="default">Requerido</Badge>
-              {keySaved && <Badge variant="success">Guardada ✓</Badge>}
-            </div>
-            <p className="text-sm text-[#A09A93] leading-relaxed">API Key de Anthropic — se guarda solo en tu navegador (localStorage), nunca se envía a terceros.</p>
-            <div className="flex gap-2">
-              <Input type={showKey ? 'text' : 'password'} placeholder="sk-ant-..." value={apiKey} onChange={e => setApiKey(e.target.value)} className="flex-1" />
-              <Button variant="ghost" size="icon" onClick={() => setShowKey(!showKey)}>{showKey ? <EyeOff size={16} /> : <Eye size={16} />}</Button>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-[#A09A93]">Modelo</label>
-              <Select value={model} onChange={e => setModel(e.target.value)}>
-                <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Recomendado)</option>
-                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Más rápido)</option>
-                <option value="claude-opus-4-20250514">Claude Opus 4 (Más profundo)</option>
-              </Select>
-            </div>
-            <Button className="w-full" onClick={saveKey}>Guardar clave</Button>
-          </Card>
-
           {/* Upload */}
           <Card className="p-7 space-y-4">
-            <div className="text-sm font-semibold font-serif text-[#F0EDE8]">2. Sube tu contrato</div>
+            <div className="text-sm font-semibold font-serif text-[#F0EDE8]">1. Sube tu Contrato</div>
             <div
               className="border-2 border-dashed border-white/[0.07] rounded-xl p-10 text-center cursor-pointer transition-all hover:border-[#C8102E]/50 hover:bg-[#C8102E]/5"
               onClick={() => fileRef.current?.click()}
@@ -160,8 +124,14 @@ export function PageAnalizar() {
             >
               <Upload size={40} className="mx-auto mb-4 opacity-30" />
               <p className="text-sm text-[#F0EDE8] font-medium mb-1">Arrastra tu contrato aquí</p>
-              <p className="text-xs text-[#6B6560]">o haz clic — PDF o imagen (JPG, PNG)</p>
-              <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={e => e.target.files?.[0] && setFile(e.target.files[0])} />
+              <p className="text-xs text-[#6B6560]">o haz clic para seleccionar — PDF o imagen (JPG, PNG)</p>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                className="hidden"
+                onChange={e => e.target.files?.[0] && setFile(e.target.files[0])}
+              />
             </div>
             {file && (
               <div className="flex items-center justify-between px-4 py-3 bg-[#1F1F1F] rounded-lg">
@@ -177,33 +147,42 @@ export function PageAnalizar() {
           {/* Question */}
           <Card className="p-7 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="text-sm font-semibold font-serif text-[#F0EDE8]">3. Pregunta específica</div>
+              <div className="text-sm font-semibold font-serif text-[#F0EDE8]">2. ¿Tienes una duda específica?</div>
               <Badge variant="muted">Opcional</Badge>
             </div>
             <textarea
               rows={4}
-              placeholder="Ej: ¿Pueden obligarme a trabajar los domingos? ¿Mi cláusula de no competencia es legal?"
+              placeholder="Ej: ¿Pueden obligarme a trabajar los domingos? ¿Mi cláusula de no competencia es legal? ¿Me pueden despedir estando con licencia?"
               value={question}
               onChange={e => setQuestion(e.target.value)}
               className="w-full bg-[#1F1F1F] border border-white/[0.07] rounded-lg px-4 py-3 text-sm font-sans text-[#F0EDE8] outline-none transition-colors focus:border-[#C8102E] resize-y placeholder:text-[#6B6560]"
             />
           </Card>
 
-          <Button className="w-full py-4 text-base" onClick={analizar} disabled={estado === 'loading'}>
-            <Bot size={18} /> {estado === 'loading' ? 'Analizando...' : 'Analizar Contrato'}
+          <Button
+            className="w-full py-4 text-base"
+            onClick={analizar}
+            disabled={estado === 'loading'}
+          >
+            {estado === 'loading'
+              ? <><Loader2 size={18} className="animate-spin" /> Analizando...</>
+              : <><Bot size={18} /> Analizar Contrato</>
+            }
           </Button>
         </div>
 
         {/* Right */}
         <div className="space-y-5">
           <Card className="p-7 min-h-[340px]">
-            <div className="text-sm font-semibold font-serif text-[#F0EDE8] mb-5">Análisis del contrato</div>
+            <div className="text-sm font-semibold font-serif text-[#F0EDE8] mb-5">Análisis del Contrato</div>
+
             {estado === 'idle' && (
               <div className="text-center py-14 text-[#6B6560]">
                 <Scale size={52} className="mx-auto mb-5 opacity-20" />
                 <p className="text-sm">Sube tu contrato y presiona analizar.<br />La IA te explicará cada cláusula.</p>
               </div>
             )}
+
             {estado === 'loading' && (
               <div className="text-center py-14">
                 <div className="w-10 h-10 border-2 border-[#2A2A2A] border-t-[#C8102E] rounded-full animate-spin mx-auto mb-5" />
@@ -211,27 +190,32 @@ export function PageAnalizar() {
                 <p className="text-xs text-[#6B6560] mt-2">{loadingSub}</p>
               </div>
             )}
+
             {estado === 'done' && (
               <div
                 className="text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: '<p class="mb-4 text-[#A09A93] text-sm leading-relaxed">' + renderMarkdown(resultado) + '</p>' }}
+                dangerouslySetInnerHTML={{
+                  __html: '<p class="mb-4 text-[#A09A93] text-sm leading-relaxed">' + renderMarkdown(resultado) + '</p>',
+                }}
               />
             )}
+
             {estado === 'error' && (
-              <div className="flex gap-3 p-5 rounded-xl bg-[#C9922A]/8 border border-[#C9922A]/20 text-[#C9922A] text-sm">
-                <span>⚠️</span><span>{errorMsg}</span>
+              <div className="flex gap-3 p-5 rounded-xl bg-red-950/20 border border-red-400/20 text-red-300 text-sm">
+                <span>✕</span><span>{errorMsg}</span>
               </div>
             )}
           </Card>
 
           <div className="bg-[#1F1F1F] rounded-xl p-6 border-l-[3px] border-emerald-500">
-            <div className="text-sm font-semibold text-[#F0EDE8] mb-3">Ejemplos de preguntas</div>
+            <div className="text-sm font-semibold text-[#F0EDE8] mb-3">Ejemplos de preguntas que puedes hacer</div>
             <ul className="space-y-2 text-sm text-[#A09A93] leading-relaxed">
               {[
                 '"¿Mi jornada laboral es legal según el Código del Trabajo?"',
                 '"¿Esta cláusula de exclusividad es válida?"',
                 '"¿Tengo derecho a indemnización si me despiden?"',
-                '"¿Qué significa esta cláusula de confidencialidad?"',
+                '"¿Qué significa esta cláusula sobre confidencialidad?"',
+                '"¿Mi contrato a plazo fijo se puede renovar indefinidamente?"',
                 '"¿Los descuentos que me hacen son legales?"',
               ].map(q => (
                 <li key={q} className="flex gap-2">
@@ -242,8 +226,13 @@ export function PageAnalizar() {
           </div>
 
           <div className="bg-[#1F1F1F] rounded-xl p-6 border-l-[3px] border-[#C9922A]">
-            <div className="text-sm font-semibold text-[#F0EDE8] mb-2">¿No tienes API Key?</div>
-            <p className="text-sm text-[#A09A93] leading-relaxed">Crea una cuenta en <strong className="text-[#F0EDE8]">console.anthropic.com</strong> y genera una API Key. El análisis de un contrato típico cuesta menos de <strong className="text-[#F0EDE8]">$0.05 USD</strong>.</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-emerald-400">✅</span>
+              <div className="text-sm font-semibold text-[#F0EDE8]">Completamente gratuito</div>
+            </div>
+            <p className="text-sm text-[#A09A93] leading-relaxed">
+              No necesitas cuenta ni API Key. El análisis es <strong className="text-[#F0EDE8]">gratis para todos</strong> — solo sube tu contrato y presiona Analizar.
+            </p>
           </div>
         </div>
       </div>
