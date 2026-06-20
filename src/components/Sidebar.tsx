@@ -4,7 +4,7 @@ import {
   Shield, Calculator, Coins, AlertTriangle, BookOpen,
   UserX, Users, Building, Wrench, Bot,
   Gavel, HeartHandshake, Clock, Baby, Laptop, MapPin,
-  Sun, Moon
+  Sun, Moon, Scan
 } from 'lucide-react'
 import { useTheme } from '../lib/theme'
 
@@ -51,6 +51,7 @@ const NAV: NavGroup[] = [
     title: 'Herramientas IA',
     items: [
       { id: 'analizar', label: 'Analizar Contrato', icon: <Bot size={16} /> },
+      { id: 'ocr', label: 'Extractor OCR', icon: <Scan size={16} /> },
     ],
   },
 ]

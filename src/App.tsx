@@ -22,6 +22,7 @@ import { PageJornada } from './pages/PageJornada'
 import { PageMaternidad } from './pages/PageMaternidad'
 import { PageTeletrabajo } from './pages/PageTeletrabajo'
 import { PageOIRS } from './pages/PageOIRS'
+import { PageOCR } from './pages/PageOCR'
 import { Menu, X } from 'lucide-react'
 
 export type PageId =
@@ -29,7 +30,7 @@ export type PageId =
   | 'afp-salud' | 'descuentos' | 'afc'
   | 'accidente' | 'contratos' | 'despidos' | 'derechos' | 'condiciones' | 'materiales'
   | 'tutela' | 'karin' | 'jornada' | 'maternidad' | 'teletrabajo' | 'oirs'
-  | 'analizar'
+  | 'analizar' | 'ocr'
 
 const buildPages = (nav: (id: PageId) => void): Record<PageId, React.ReactNode> => ({
   inicio: <PageInicio onNavigate={nav} />,
@@ -54,6 +55,7 @@ const buildPages = (nav: (id: PageId) => void): Record<PageId, React.ReactNode> 
   teletrabajo: <PageTeletrabajo />,
   oirs: <PageOIRS />,
   analizar: <PageAnalizar />,
+  ocr: <PageOCR />,
 })
 
 export default function App() {
