@@ -51,16 +51,20 @@ app.post('/api/analizar', rateLimit, async (req, res) => {
   if (typeof texto !== 'string' || !texto.trim()) {
     return res.status(400).json({ error: 'Falta el contenido del contrato.' })
   }
-  if (texto.length > 40000) {
-    return res.status(400).json({ error: 'El contrato supera el tamaño máximo permitido (40 000 caracteres).' })
-  }
   if (pregunta !== undefined && (typeof pregunta !== 'string' || pregunta.length > 500)) {
     return res.status(400).json({ error: 'La pregunta supera los 500 caracteres permitidos.' })
   }
 
-  const mensajeUsuario = pregunta
-    ? `${texto}\n\nPregunta específica: ${pregunta}`
+  // Groq free tier: ~12,000 TPM. Sistema ~200 tokens, respuesta ~2048 → máx ~9,500 tokens input.
+  // ~4 chars/token en español → truncar a 24,000 chars para estar seguros bajo el límite.
+  const MAX_CHARS = 24000
+  const textoTruncado = texto.length > MAX_CHARS
+    ? texto.substring(0, MAX_CHARS) + '\n\n[Contrato truncado por límite de tamaño. Se analizaron las primeras secciones.]'
     : texto
+
+  const mensajeUsuario = pregunta
+    ? `${textoTruncado}\n\nPregunta específica: ${pregunta}`
+    : textoTruncado
 
   try {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
