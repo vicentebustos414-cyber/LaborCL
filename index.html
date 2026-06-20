@@ -455,6 +455,12 @@ body{
   <button class="nav-item" onclick="showPage('analizar')">
     <span class="icon">🤖</span> Analizar Contrato IA
   </button>
+  <button class="nav-item" onclick="showPage('historial')">
+    <span class="icon">📂</span> Historial Contratos
+  </button>
+  <button class="nav-item" onclick="showPage('ocr')">
+    <span class="icon">🔍</span> Extractor OCR
+  </button>
 
   <div class="sidebar-footer">
     Art. 19 N°16 Constitución Chile<br>
@@ -1829,22 +1835,33 @@ body{
         </div>
       </div>
 
-      <button class="btn btn-primary btn-full" style="margin-top:16px;padding:14px;font-size:15px" onclick="analizarContrato()" id="btn-analizar">
-        🤖 Analizar Contrato
-      </button>
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-primary btn-full" style="padding:14px;font-size:15px" onclick="enviarConsulta(false)" id="btn-analizar">
+          🤖 Analizar Contrato
+        </button>
+        <button class="btn btn-ghost btn-full" style="padding:12px;font-size:14px" onclick="enviarConsulta(true)" id="btn-consultar">
+          💬 Consultar sin contrato
+        </button>
+      </div>
     </div>
 
     <div>
       <!-- RESULTADO DEL ANÁLISIS -->
       <div class="card" id="card-resultado" style="min-height:300px">
-        <div class="card-title">Análisis del Contrato</div>
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Análisis del Contrato</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="badge-guardado" style="display:none;font-size:11px;color:var(--verde);font-family:'Outfit',sans-serif;font-weight:500">✓ Guardado</span>
+            <button id="btn-fullscreen" style="display:none;background:var(--bg3);border:1px solid var(--borde);border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--texto2);font-size:16px;line-height:1" onclick="abrirFullscreen()" title="Ver en pantalla completa">⛶</button>
+          </div>
+        </div>
 
         <!-- Estado: esperando -->
         <div id="analisis-vacio" style="text-align:center;padding:40px 20px">
           <div style="font-size:56px;margin-bottom:16px;opacity:.3">⚖️</div>
           <div style="font-size:15px;color:var(--texto3)">
-            Sube tu contrato y presiona analizar.<br>
-            La IA te explicará cada cláusula.
+            Sube tu contrato o escribe una pregunta<br>
+            y presiona analizar. La IA responde gratis.
           </div>
         </div>
 
@@ -1892,7 +1909,128 @@ body{
   </div>
 </section>
 
+<!-- ════════ HISTORIAL DE CONTRATOS ════════ -->
+<section class="page" id="page-historial">
+  <div class="page-header">
+    <div class="page-tag">Herramienta IA</div>
+    <h2 class="page-title">Historial de <em>Contratos</em></h2>
+    <p class="page-desc">Tus análisis guardados localmente en este dispositivo. Nunca se envían a ningún servidor.</p>
+  </div>
+
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+    <input type="text" id="hist-buscar" placeholder="Buscar por nombre o pregunta..."
+      style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--borde);border-radius:8px;padding:10px 14px;color:var(--texto);font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s"
+      oninput="renderHistorial()" onfocus="this.style.borderColor='var(--rojo)'" onblur="this.style.borderColor='var(--borde)'">
+    <button class="btn btn-ghost" onclick="clearHistorial()" style="white-space:nowrap">🗑️ Limpiar todo</button>
+  </div>
+
+  <div id="hist-vacio" style="display:none;text-align:center;padding:60px 20px">
+    <div style="font-size:56px;margin-bottom:16px;opacity:.3">📂</div>
+    <div style="font-size:15px;color:var(--texto3)">No hay análisis guardados.<br>Analiza un contrato para que aparezca aquí.</div>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="showPage('analizar')">🤖 Ir a Analizar</button>
+  </div>
+
+  <div id="hist-lista" style="display:flex;flex-direction:column;gap:12px"></div>
+</section>
+
+<!-- ════════ EXTRACTOR OCR ════════ -->
+<section class="page" id="page-ocr">
+  <div class="page-header">
+    <div class="page-tag">Herramienta</div>
+    <h2 class="page-title">Extractor <em>OCR</em></h2>
+    <p class="page-desc">Extrae texto de imágenes o PDFs escaneados usando reconocimiento óptico de caracteres, 100% gratis en tu dispositivo.</p>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">Subir Imagen o PDF</div>
+        <div id="ocr-drop" style="border:2px dashed var(--borde);border-radius:12px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--bg)"
+          onclick="document.getElementById('ocr-input').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--rojo)';this.style.background='var(--rojo-suave)'"
+          ondragleave="this.style.borderColor='var(--borde)';this.style.background='var(--bg)'"
+          ondrop="ocrHandleDrop(event)">
+          <div style="font-size:48px;margin-bottom:12px;opacity:.6">🔍</div>
+          <div style="font-size:15px;color:var(--texto);font-weight:500;margin-bottom:4px">Arrastra tu archivo aquí</div>
+          <div style="font-size:13px;color:var(--texto3)">o haz clic — JPG, PNG, WebP o PDF escaneado</div>
+          <input type="file" id="ocr-input" accept=".jpg,.jpeg,.png,.webp,.pdf" style="display:none" onchange="ocrHandleFile(this.files[0])">
+        </div>
+        <div id="ocr-file-info" style="display:none;margin-top:12px;padding:12px 16px;background:var(--bg3);border-radius:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div id="ocr-file-name" style="font-size:14px;font-weight:500;color:var(--texto)"></div>
+              <div id="ocr-file-size" style="font-size:12px;color:var(--texto3);margin-top:2px"></div>
+            </div>
+            <button class="btn btn-ghost" onclick="ocrClearFile()" style="padding:6px 12px;font-size:12px">✕</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:16px;padding:14px;font-size:15px" onclick="iniciarOCR()" id="btn-ocr">
+          🔍 Extraer Texto
+        </button>
+      </div>
+
+      <div class="info-card verde" style="margin-top:16px">
+        <h4>¿Qué es OCR?</h4>
+        <p>Convierte imágenes con texto en texto editable. Ideal para contratos escaneados o fotografías de documentos laborales.</p>
+      </div>
+      <div class="info-card" style="margin-top:12px">
+        <h4>Formatos soportados</h4>
+        <ul>
+          <li><strong>Imágenes:</strong> JPG, PNG, WebP — procesado directamente</li>
+          <li><strong>PDF escaneado:</strong> cada página se convierte a imagen</li>
+          <li>Máximo 20 MB · Todo se procesa en tu dispositivo</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="min-height:300px">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Texto Extraído</span>
+          <button id="ocr-btn-copy" style="display:none;background:var(--bg3);border:1px solid var(--borde);border-radius:6px;padding:6px 12px;cursor:pointer;color:var(--texto2);font-size:13px;font-family:'Outfit',sans-serif" onclick="copiarOCR()">📋 Copiar</button>
+        </div>
+
+        <div id="ocr-vacio" style="text-align:center;padding:40px 20px">
+          <div style="font-size:56px;margin-bottom:16px;opacity:.3">📄</div>
+          <div style="font-size:15px;color:var(--texto3)">Sube una imagen o PDF<br>y presiona Extraer Texto.</div>
+        </div>
+
+        <div id="ocr-loading" style="display:none;text-align:center;padding:40px 20px">
+          <div style="width:40px;height:40px;border:3px solid var(--bg4);border-top-color:var(--rojo);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px"></div>
+          <div style="font-size:15px;color:var(--texto2);font-weight:500" id="ocr-loading-msg">Iniciando OCR...</div>
+          <div style="margin-top:12px;background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;width:80%;margin-left:auto;margin-right:auto">
+            <div id="ocr-progress-fill" style="height:100%;width:0%;background:var(--rojo);transition:width .3s;border-radius:4px"></div>
+          </div>
+          <div style="font-size:12px;color:var(--texto3);margin-top:6px" id="ocr-progress-pct">0%</div>
+        </div>
+
+        <div id="ocr-resultado" style="display:none">
+          <div style="font-size:12px;color:var(--texto3);margin-bottom:8px" id="ocr-meta"></div>
+          <textarea id="ocr-texto" style="width:100%;background:var(--bg3);border:1px solid var(--borde);border-radius:8px;padding:12px;color:var(--texto);font-family:'Outfit',sans-serif;font-size:13px;resize:vertical;min-height:280px;outline:none;line-height:1.6" readonly></textarea>
+          <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="usarEnAnalizador()">🤖 Usar en Analizador de Contratos</button>
+        </div>
+
+        <div id="ocr-error" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
+
+<!-- ════════ MODAL PANTALLA COMPLETA ════════ -->
+<div id="modal-fullscreen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);overflow-y:auto">
+  <div style="max-width:860px;margin:0 auto;padding:32px 40px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;position:sticky;top:0;background:var(--bg);padding:16px 0;border-bottom:1px solid var(--borde);z-index:1">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--texto)">Análisis del Contrato</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="copiarFullscreen()" style="background:var(--bg3);border:1px solid var(--borde);border-radius:6px;padding:8px 16px;cursor:pointer;color:var(--texto2);font-size:13px;font-family:'Outfit',sans-serif">📋 Copiar</button>
+        <button onclick="cerrarFullscreen()" style="background:var(--rojo);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;color:#fff;font-size:13px;font-family:'Outfit',sans-serif;font-weight:600">✕ Cerrar</button>
+      </div>
+    </div>
+    <div id="modal-contenido" style="font-size:15px;color:var(--texto);line-height:1.9"></div>
+  </div>
+</div>
 
 <script>
 // ─── NAVEGACIÓN ───
@@ -1903,6 +2041,7 @@ function showPage(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick')?.includes("'"+id+"'")) n.classList.add('active');
   });
+  if(id==='historial') renderHistorial();
   if(window.innerWidth<=900) closeSidebar();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2243,6 +2382,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   const hoy=new Date().toISOString().split('T')[0];
   const campos=['vac-hoy','fin-termino','ind-termino','anos-termino'];
   campos.forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=hoy;});
+
+  // Ctrl+Enter para enviar consulta desde el textarea
+  const textarea=document.getElementById('user-question');
+  if(textarea){
+    textarea.addEventListener('keydown',e=>{
+      if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+        e.preventDefault();
+        uploadedFileData ? enviarConsulta(false) : enviarConsulta(true);
+      }
+    });
+  }
 });
 
 // ════════════════════════════════════════════
@@ -2422,9 +2572,17 @@ Responde SIEMPRE en español chileno, de forma cercana y comprensible.`;
 
 // ─── LLAMADA DIRECTA A GROQ ───
 const GROQ_KEY=['gsk_ALd0oBcg9pVf','CbDDj1a7WGdyb3FY','jXKuULDwVACY8M7yPvQocCo1'].join('');
-async function analizarContrato(){
-  if(!uploadedFileData){
+
+let ultimoAnalisisHtml='';
+let ultimoAnalisisTexto='';
+
+async function enviarConsulta(soloConsulta){
+  const userQuestion=document.getElementById('user-question').value.trim();
+  if(!soloConsulta && !uploadedFileData){
     alert('Sube un contrato primero (PDF o imagen)');return;
+  }
+  if(soloConsulta && !userQuestion){
+    alert('Escribe una pregunta antes de consultar');return;
   }
 
   document.getElementById('analisis-vacio').style.display='none';
@@ -2433,15 +2591,11 @@ async function analizarContrato(){
   document.getElementById('analisis-loading').style.display='block';
   document.getElementById('btn-analizar').disabled=true;
   document.getElementById('btn-analizar').textContent='⏳ Analizando...';
-
-  const userQuestion=document.getElementById('user-question').value.trim();
+  document.getElementById('btn-consultar').disabled=true;
+  document.getElementById('btn-fullscreen').style.display='none';
+  document.getElementById('badge-guardado').style.display='none';
 
   try{
-    let texto='';
-    const isPdf=uploadedFileType==='application/pdf';
-    const isImage=uploadedFileType?.startsWith('image/');
-
-    // Llama a Groq con reintentos automáticos y backoff en caso de alta demanda (429)
     async function groqConReintentos(payload, maxIntentos=3){
       let espera=5000;
       for(let intento=1; intento<=maxIntentos; intento++){
@@ -2454,7 +2608,7 @@ async function analizarContrato(){
         let data;
         try{data=JSON.parse(raw);}catch(e){throw new Error('Error de conexión con la IA. Intenta de nuevo.');}
         if(resp.status===429){
-          if(intento===maxIntentos) throw new Error('El servicio está con alta demanda ahora. Espera un momento e intenta de nuevo.');
+          if(intento===maxIntentos) throw new Error('El servicio está con alta demanda. Espera un momento e intenta de nuevo.');
           const retryAfter=(data?.error?.message?.match(/try again in (\d+(?:\.\d+)?)s/i)?.[1]||espera/1000);
           const segs=Math.ceil(parseFloat(retryAfter));
           document.getElementById('loading-sub').textContent=`Alta demanda — reintentando en ${segs}s (intento ${intento}/${maxIntentos})...`;
@@ -2463,31 +2617,36 @@ async function analizarContrato(){
           continue;
         }
         if(!resp.ok) throw new Error(data?.error?.message||`Error ${resp.status}`);
-        const resultado=data.choices?.[0]?.message?.content;
-        if(!resultado) throw new Error('La IA no devolvió respuesta. Intenta de nuevo.');
-        return resultado;
+        const res=data.choices?.[0]?.message?.content;
+        if(!res) throw new Error('La IA no devolvió respuesta. Intenta de nuevo.');
+        return res;
       }
     }
 
-    if(isPdf){
-      document.getElementById('loading-sub').textContent='Extrayendo texto del PDF...';
-      texto=await extractPdfText(uploadedFileData);
-      if(!texto||texto.length<50){
-        throw new Error('El PDF no contiene texto extraíble. Intenta subir una imagen del contrato.');
-      }
-      document.getElementById('loading-sub').textContent='Enviando a IA para análisis...';
-      const mensajeUsuario=userQuestion
-        ?'CONTRATO LABORAL A ANALIZAR:\n\n'+texto+'\n\nPregunta específica: '+userQuestion
-        :'CONTRATO LABORAL A ANALIZAR:\n\n'+texto;
-      const resultado=await groqConReintentos({
-        model:'llama-3.3-70b-versatile',max_tokens:2048,
-        messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:mensajeUsuario}]
-      });
-      document.getElementById('analisis-loading').style.display='none';
-      document.getElementById('analisis-resultado').style.display='block';
-      document.getElementById('analisis-contenido').innerHTML=mdToHtml(resultado);
+    let resultado='';
 
-    } else if(isImage){
+    if(soloConsulta){
+      document.getElementById('loading-sub').textContent='Consultando IA sobre derecho laboral...';
+      const msg=`El usuario tiene esta consulta sobre derecho laboral chileno:\n\n${userQuestion}\n\nResponde con claridad, referenciando artículos del Código del Trabajo cuando aplique.`;
+      resultado=await groqConReintentos({
+        model:'llama-3.3-70b-versatile',max_tokens:2048,
+        messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:msg}]
+      });
+    } else if(uploadedFileType==='application/pdf'){
+      document.getElementById('loading-sub').textContent='Extrayendo texto del PDF...';
+      const texto=await extractPdfText(uploadedFileData);
+      if(!texto||texto.length<50) throw new Error('El PDF no contiene texto extraíble. Usa el Extractor OCR para PDFs escaneados.');
+      document.getElementById('loading-sub').textContent='Enviando a IA para análisis...';
+      const MAX_CHARS=24000;
+      const textoTruncado=texto.length>MAX_CHARS?texto.substring(0,MAX_CHARS)+'\n\n[Texto truncado por límite de tamaño]':texto;
+      const msg=userQuestion
+        ?'CONTRATO LABORAL A ANALIZAR:\n\n'+textoTruncado+'\n\nPregunta específica: '+userQuestion
+        :'CONTRATO LABORAL A ANALIZAR:\n\n'+textoTruncado;
+      resultado=await groqConReintentos({
+        model:'llama-3.3-70b-versatile',max_tokens:2048,
+        messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:msg}]
+      });
+    } else {
       document.getElementById('loading-sub').textContent='Procesando imagen del contrato...';
       const base64=uploadedFileData.split(',')[1];
       const userContent=[
@@ -2495,14 +2654,25 @@ async function analizarContrato(){
         {type:'text',text:userQuestion?'Analiza este contrato laboral. Pregunta específica: '+userQuestion:'Analiza este contrato laboral.'}
       ];
       document.getElementById('loading-sub').textContent='Enviando imagen a IA...';
-      const imgResult=await groqConReintentos({
+      resultado=await groqConReintentos({
         model:'meta-llama/llama-4-scout-17b-16e-instruct',max_tokens:2048,
         messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:userContent}]
       });
-      document.getElementById('analisis-loading').style.display='none';
-      document.getElementById('analisis-resultado').style.display='block';
-      document.getElementById('analisis-contenido').innerHTML=mdToHtml(imgResult);
     }
+
+    ultimoAnalisisHtml=mdToHtml(resultado);
+    ultimoAnalisisTexto=resultado;
+
+    document.getElementById('analisis-loading').style.display='none';
+    document.getElementById('analisis-resultado').style.display='block';
+    document.getElementById('analisis-contenido').innerHTML=ultimoAnalisisHtml;
+    document.getElementById('btn-fullscreen').style.display='block';
+
+    // Guardar en historial
+    const nombreArchivo=soloConsulta?'Consulta directa':(document.getElementById('file-name')?.textContent||'Sin nombre');
+    guardarEnHistorial(nombreArchivo, userQuestion, resultado);
+    document.getElementById('badge-guardado').style.display='inline';
+    setTimeout(()=>{document.getElementById('badge-guardado').style.display='none';},3000);
 
   } catch(err){
     document.getElementById('analisis-loading').style.display='none';
@@ -2511,7 +2681,235 @@ async function analizarContrato(){
   } finally {
     document.getElementById('btn-analizar').disabled=false;
     document.getElementById('btn-analizar').textContent='🤖 Analizar Contrato';
+    document.getElementById('btn-consultar').disabled=false;
   }
+}
+
+// ─── PANTALLA COMPLETA ───
+function abrirFullscreen(){
+  if(!ultimoAnalisisHtml) return;
+  document.getElementById('modal-contenido').innerHTML=ultimoAnalisisHtml;
+  document.getElementById('modal-fullscreen').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function cerrarFullscreen(){
+  document.getElementById('modal-fullscreen').style.display='none';
+  document.body.style.overflow='';
+}
+function copiarFullscreen(){
+  navigator.clipboard.writeText(ultimoAnalisisTexto).then(()=>{
+    const btn=document.querySelector('#modal-fullscreen button');
+    if(btn){btn.textContent='✅ Copiado';setTimeout(()=>{btn.textContent='📋 Copiar';},2000);}
+  });
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') cerrarFullscreen();});
+
+// ─── HISTORIAL ───
+const HIST_KEY='laborcl_historial_contratos';
+const MAX_HIST=50;
+
+function getHistorial(){
+  try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]');}catch(e){return [];}
+}
+function guardarEnHistorial(nombre, pregunta, resultado){
+  const items=getHistorial();
+  items.unshift({id:Date.now().toString(),nombre,pregunta,resultado,fecha:new Date().toISOString()});
+  if(items.length>MAX_HIST) items.splice(MAX_HIST);
+  localStorage.setItem(HIST_KEY,JSON.stringify(items));
+}
+function eliminarDeHistorial(id){
+  const items=getHistorial().filter(i=>i.id!==id);
+  localStorage.setItem(HIST_KEY,JSON.stringify(items));
+  renderHistorial();
+}
+function clearHistorial(){
+  if(!confirm('¿Eliminar todo el historial? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem(HIST_KEY);
+  renderHistorial();
+}
+function formatearFechaHist(iso){
+  try{return new Date(iso).toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return iso;}
+}
+function verEnFullscreen(id){
+  const item=getHistorial().find(i=>i.id===id);
+  if(!item) return;
+  ultimoAnalisisHtml=mdToHtml(item.resultado);
+  ultimoAnalisisTexto=item.resultado;
+  document.getElementById('modal-contenido').innerHTML=ultimoAnalisisHtml;
+  document.getElementById('modal-fullscreen').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function renderHistorial(){
+  const busqueda=(document.getElementById('hist-buscar')?.value||'').toLowerCase();
+  let items=getHistorial();
+  if(busqueda) items=items.filter(i=>i.nombre.toLowerCase().includes(busqueda)||i.pregunta.toLowerCase().includes(busqueda));
+  const lista=document.getElementById('hist-lista');
+  const vacio=document.getElementById('hist-vacio');
+  if(!lista) return;
+  if(!items.length){
+    lista.innerHTML='';
+    if(vacio) vacio.style.display='block';
+    return;
+  }
+  if(vacio) vacio.style.display='none';
+  lista.innerHTML=items.map(item=>`
+    <div class="card" style="padding:20px 24px;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--borde-rojo)'" onmouseleave="this.style.borderColor='var(--borde)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;color:var(--texto);font-size:15px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.nombre}</div>
+          ${item.pregunta?`<div style="font-size:13px;color:var(--texto2);margin-bottom:6px;font-style:italic">"${item.pregunta.substring(0,80)}${item.pregunta.length>80?'…':''}"</div>`:''}
+          <div style="font-size:12px;color:var(--texto3)">${formatearFechaHist(item.fecha)}</div>
+          <div style="font-size:13px;color:var(--texto2);margin-top:8px;line-height:1.5">${item.resultado.substring(0,120)}…</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button onclick="verEnFullscreen('${item.id}')" style="background:var(--bg3);border:1px solid var(--borde);border-radius:6px;padding:7px 12px;cursor:pointer;color:var(--texto2);font-size:14px" title="Ver completo">⛶</button>
+          <button onclick="eliminarDeHistorial('${item.id}')" style="background:var(--rojo-suave);border:1px solid var(--borde-rojo);border-radius:6px;padding:7px 12px;cursor:pointer;color:var(--rojo);font-size:14px" title="Eliminar">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── OCR CON TESSERACT.JS (CDN) ───
+let ocrFileData=null;
+let ocrFileType=null;
+let ocrTextoExtraido='';
+
+function ocrHandleDrop(e){
+  e.preventDefault();
+  e.currentTarget.style.borderColor='var(--borde)';
+  e.currentTarget.style.background='var(--bg)';
+  if(e.dataTransfer.files.length) ocrHandleFile(e.dataTransfer.files[0]);
+}
+function ocrHandleFile(file){
+  if(!file) return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['jpg','jpeg','png','webp','pdf'].includes(ext)){alert('Formato no soportado. Usa JPG, PNG, WebP o PDF.');return;}
+  if(file.size>20*1024*1024){alert('Archivo demasiado grande (máx 20MB).');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    ocrFileData=e.target.result;
+    ocrFileType=file.type||'image/jpeg';
+    document.getElementById('ocr-file-info').style.display='block';
+    document.getElementById('ocr-file-name').textContent=file.name;
+    document.getElementById('ocr-file-size').textContent=(file.size/1024).toFixed(1)+' KB';
+  };
+  reader.readAsDataURL(file);
+}
+function ocrClearFile(){
+  ocrFileData=null;ocrFileType=null;ocrTextoExtraido='';
+  document.getElementById('ocr-file-info').style.display='none';
+  document.getElementById('ocr-input').value='';
+  document.getElementById('ocr-resultado').style.display='none';
+  document.getElementById('ocr-vacio').style.display='block';
+  document.getElementById('ocr-btn-copy').style.display='none';
+}
+
+async function cargarTesseract(){
+  if(window.Tesseract) return;
+  await new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=resolve;s.onerror=reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function iniciarOCR(){
+  if(!ocrFileData){alert('Sube una imagen o PDF primero');return;}
+  document.getElementById('ocr-vacio').style.display='none';
+  document.getElementById('ocr-error').style.display='none';
+  document.getElementById('ocr-resultado').style.display='none';
+  document.getElementById('ocr-loading').style.display='block';
+  document.getElementById('btn-ocr').disabled=true;
+  document.getElementById('btn-ocr').textContent='⏳ Procesando...';
+  document.getElementById('ocr-progress-fill').style.width='0%';
+  document.getElementById('ocr-progress-pct').textContent='0%';
+
+  try{
+    await cargarTesseract();
+    let textoFinal='';
+
+    const isPdf=ocrFileType==='application/pdf';
+    if(isPdf){
+      document.getElementById('ocr-loading-msg').textContent='Cargando PDF...';
+      if(!window.pdfjsLib){
+        await new Promise((resolve,reject)=>{
+          const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+          s.onload=resolve;s.onerror=reject;
+          document.head.appendChild(s);
+        });
+        pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      const raw=atob(ocrFileData.split(',')[1]);
+      const uint8=new Uint8Array(raw.length);
+      for(let i=0;i<raw.length;i++) uint8[i]=raw.charCodeAt(i);
+      const pdf=await pdfjsLib.getDocument({data:uint8}).promise;
+      const totalPages=pdf.numPages;
+
+      for(let p=1;p<=totalPages;p++){
+        document.getElementById('ocr-loading-msg').textContent=`Procesando página ${p} de ${totalPages}...`;
+        const page=await pdf.getPage(p);
+        const viewport=page.getViewport({scale:2});
+        const canvas=document.createElement('canvas');
+        canvas.width=viewport.width; canvas.height=viewport.height;
+        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+        const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+        const result=await Tesseract.recognize(blob,'spa',{
+          logger:m=>{
+            if(m.status==='recognizing text'){
+              const pgPct=m.progress||0;
+              const total=((p-1)/totalPages+pgPct/totalPages)*100;
+              document.getElementById('ocr-progress-fill').style.width=Math.round(total)+'%';
+              document.getElementById('ocr-progress-pct').textContent=Math.round(total)+'%';
+            }
+          }
+        });
+        textoFinal+=`--- Página ${p} ---\n${result.data.text}\n\n`;
+      }
+    } else {
+      document.getElementById('ocr-loading-msg').textContent='Reconociendo texto...';
+      const result=await Tesseract.recognize(ocrFileData,'spa',{
+        logger:m=>{
+          if(m.status==='recognizing text'){
+            const pct=Math.round((m.progress||0)*100);
+            document.getElementById('ocr-progress-fill').style.width=pct+'%';
+            document.getElementById('ocr-progress-pct').textContent=pct+'%';
+          }
+        }
+      });
+      textoFinal=result.data.text;
+    }
+
+    ocrTextoExtraido=textoFinal.trim();
+    document.getElementById('ocr-loading').style.display='none';
+    document.getElementById('ocr-resultado').style.display='block';
+    document.getElementById('ocr-texto').value=ocrTextoExtraido;
+    document.getElementById('ocr-meta').textContent=`${ocrTextoExtraido.length.toLocaleString('es-CL')} caracteres extraídos`;
+    document.getElementById('ocr-btn-copy').style.display='inline-block';
+
+  } catch(err){
+    document.getElementById('ocr-loading').style.display='none';
+    document.getElementById('ocr-error').style.display='block';
+    document.getElementById('ocr-error').innerHTML='<div class="alert alert-warning"><span>❌</span><span><strong>Error OCR:</strong> '+err.message+'</span></div>';
+  } finally {
+    document.getElementById('btn-ocr').disabled=false;
+    document.getElementById('btn-ocr').textContent='🔍 Extraer Texto';
+  }
+}
+
+function copiarOCR(){
+  navigator.clipboard.writeText(ocrTextoExtraido).then(()=>{
+    const btn=document.getElementById('ocr-btn-copy');
+    btn.textContent='✅ Copiado';
+    setTimeout(()=>{btn.textContent='📋 Copiar';},2000);
+  });
+}
+function usarEnAnalizador(){
+  if(!ocrTextoExtraido) return;
+  document.getElementById('user-question').value=ocrTextoExtraido.substring(0,1000);
+  showPage('analizar');
+  setTimeout(()=>{document.getElementById('user-question').focus();},300);
 }
 
 // ═══ AUTO-UPDATE WEB/APK ═══
