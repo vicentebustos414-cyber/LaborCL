@@ -4,12 +4,43 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Upload, X, Loader2, FileText, Copy, Check } from 'lucide-react'
-import Tesseract from 'tesseract.js'
-import * as pdfjsLib from 'pdfjs-dist'
-
 type Estado = 'idle' | 'loading' | 'done' | 'error'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+// Ambas librerías se cargan desde CDN para evitar problemas de bundling con workers
+declare global {
+  interface Window {
+    Tesseract?: { recognize(src: unknown, lang: string, opts?: unknown): Promise<{ data: { text: string } }> }
+    pdfjsLib?: {
+      version: string
+      GlobalWorkerOptions: { workerSrc: string }
+      getDocument(src: unknown): { promise: Promise<{ numPages: number; getPage(n: number): Promise<unknown> }> }
+    }
+  }
+}
+
+async function cargarTesseract() {
+  if (window.Tesseract) return window.Tesseract
+  await new Promise<void>((resolve, reject) => {
+    const s = document.createElement('script')
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'
+    s.onload = () => resolve(); s.onerror = reject
+    document.head.appendChild(s)
+  })
+  return window.Tesseract!
+}
+
+async function cargarPdfjs() {
+  if (window.pdfjsLib) return window.pdfjsLib
+  await new Promise<void>((resolve, reject) => {
+    const s = document.createElement('script')
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+    s.onload = () => resolve(); s.onerror = reject
+    document.head.appendChild(s)
+  })
+  window.pdfjsLib!.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+  return window.pdfjsLib!
+}
 
 export function PageOCR() {
   const [file, setFile] = useState<File | null>(null)
@@ -34,28 +65,32 @@ export function PageOCR() {
   }
 
   const extraerDelPDF = async (file: File): Promise<string> => {
+    const [Tesseract, pdfjs] = await Promise.all([cargarTesseract(), cargarPdfjs()])
     const arrayBuffer = await file.arrayBuffer()
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
     let texto = ''
 
     for (let i = 1; i <= pdf.numPages; i++) {
       setLoadingSub(`Procesando página ${i}/${pdf.numPages}...`)
-      const page = await pdf.getPage(i)
+      const page = await (pdf as unknown as { getPage(n: number): Promise<{
+        getViewport(o: { scale: number }): { width: number; height: number }
+        render(o: unknown): { promise: Promise<void> }
+      }> }).getPage(i)
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')!
       const viewport = page.getViewport({ scale: 2 })
       canvas.width = viewport.width
       canvas.height = viewport.height
-
       await page.render({ canvasContext: ctx, viewport }).promise
-
-      const result = await Tesseract.recognize(canvas, 'spa')
+      const blob = await new Promise<Blob>(r => canvas.toBlob(b => r(b!), 'image/png'))
+      const result = await Tesseract.recognize(blob, 'spa')
       texto += result.data.text + '\n\n'
     }
     return texto
   }
 
   const extraerDelImagen = async (file: File): Promise<string> => {
+    const Tesseract = await cargarTesseract()
     setLoadingSub('Extrayendo texto de imagen...')
     const result = await Tesseract.recognize(file, 'spa')
     return result.data.text
